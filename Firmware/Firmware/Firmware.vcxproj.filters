@@ -27,6 +27,12 @@
     <ClInclude Include="TemperatureReader.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="PID_v1.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PID_AutoTune_v0.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -99,6 +105,12 @@
       <Filter>Arduino Files</Filter>
     </ClCompile>
     <ClCompile Include="TemperatureReader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PID_AutoTune_v0.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PID_v1.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -86,12 +86,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="PID_AutoTune_v0.h" />
+    <ClInclude Include="PID_v1.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TemperatureReader.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="PID_AutoTune_v0.cpp" />
+    <ClCompile Include="PID_v1.cpp" />
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="TemperatureReader.cpp" />
   </ItemGroup>
