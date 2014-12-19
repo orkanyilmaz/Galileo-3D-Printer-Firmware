@@ -14,7 +14,7 @@ class TemperatureReader
 
 	int currentTestId;
 	float temperaturePin;
-
+	int readingSendCount;
 	public:
 		TemperatureReader(int tempPin);
 		void BeginNewRecording(http_client web_client, uri_builder resourceUrl);

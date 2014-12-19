@@ -25,14 +25,14 @@ byte ATuneModeRemember = 2;
 http_client web_client(U("http://archos.azurewebsites.net"));
 TemperatureReader temp_reader(A1);
 
-double input = 0, kp = 1, ki = 0, kd = 0, setpoint = 80;
+double input = 0, kp = 19, ki = .6, kd = 150,setpoint = 80;
 double output = 0;
 unsigned int aTuneLookBack = 20;
 
-boolean tuning = true;
+boolean tuning = false;
 unsigned long  modelTime, serialTime;
 
-double aTuneStep = 10, aTuneNoise = 1, aTuneStartValue = 20;
+double aTuneStep = 10, aTuneNoise = 1, aTuneStartValue = 0;
 
 PID heaterPid(&input, &output, &setpoint, kp, ki, kd, DIRECT);
 PID_ATune aTune(&input, &output);
@@ -43,9 +43,12 @@ void changeAutoTune();
 
 void setup()
 {
-	pinMode(10, OUTPUT);
 	pinMode(11, OUTPUT);
-	analogWrite(11, 180);
+	pinMode(10, OUTPUT);
+	pinMode(9, OUTPUT);
+	analogWrite(9, 0);
+	analogWrite(11,150);
+	
 	temp_reader.BeginNewRecording(web_client, uri_builder(U("/Temperature/AddTemperatureTest")));
 
 	heaterPid.SetMode(AUTOMATIC);
@@ -85,7 +88,14 @@ void loop()
 	else heaterPid.Compute();
 
 
-	analogWrite(10, output);
+	if (input < 300)
+	{
+		analogWrite(10, output);
+	}
+	else
+	{
+		analogWrite(10, 0);
+	}
 	//send-receive with processing if it's time
 	if (millis()>serialTime)
 	{
@@ -128,12 +138,4 @@ void SerialSend()
 	Log(L"setpoint: %f\n", setpoint);
 	Log(L"input: %f\n", input);
 	Log(L"output: %f\n", output);
-	if (tuning){
-		Log(L"tuning mode");
-	}
-	else {
-		Log(L"kp: $f\n", heaterPid.GetKp());
-		Log(L"ki: $f\n", heaterPid.GetKi());
-		Log(L"kd: %f\n", heaterPid.GetKd());
-	}
 }

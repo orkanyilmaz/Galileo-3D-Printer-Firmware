@@ -4,9 +4,9 @@
     <DebuggerFlavor>WindowsRemoteDebugger</DebuggerFlavor>
     <RemoteDebuggerCommand>c:\test\$(TargetFileName)</RemoteDebuggerCommand>
     <RemoteDebuggerWorkingDirectory>c:\test\</RemoteDebuggerWorkingDirectory>
-    <RemoteDebuggerServerName>mygalileo</RemoteDebuggerServerName>
     <DeploymentDirectory>c:\test\</DeploymentDirectory>
     <RemoteDebuggerDeployDebugCppRuntime>false</RemoteDebuggerDeployDebugCppRuntime>
+    <RemoteDebuggerServerName>192.168.1.89</RemoteDebuggerServerName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <DebuggerFlavor>WindowsRemoteDebugger</DebuggerFlavor>

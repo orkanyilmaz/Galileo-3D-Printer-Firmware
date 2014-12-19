@@ -45,7 +45,7 @@ float TemperatureReader::GetEndTemp(http_client web_client, uri_builder resource
 			delay(10);
 		}
 		hotEndAverage /= NUMSAMPLES;
-		hotEndAverage *= 1;
+		hotEndAverage *= 6;
 		float hotEndResistance = 0;
 
 		hotEndResistance = 1023 - hotEndAverage;
@@ -61,7 +61,11 @@ float TemperatureReader::GetEndTemp(http_client web_client, uri_builder resource
 	}
 	hotEndTempAverage /= NUMSAMPLES;
 
-	AddTemperatureReading(web_client, resourceUrl, hotEndTempAverage);
-
+	readingSendCount++;
+	if (readingSendCount == 5)
+	{
+		AddTemperatureReading(web_client, resourceUrl, hotEndTempAverage);
+		readingSendCount = 0;
+	}
 	return hotEndTempAverage;
 }
