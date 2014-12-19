@@ -1,0 +1,41 @@
+﻿Build started 12/17/2014 9:57:08 PM.
+     1>Project "C:\Users\peyton\Desktop\Galileo-3D-Printer-Firmware\Firmware\Firmware\Firmware.vcxproj" on node 2 (Build target(s)).
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I"C:\Users\peyton\Desktop\Galileo-3D-Printer-Firmware\Firmware\packages\cpprestsdk.2.3.0\build\native\include\\" /I"C:\Users\peyton\Desktop\Galileo-3D-Printer-Firmware\Firmware\packages\openssl.1.0.1.25\build\native\../..//build/native/include/v120\Win32\Debug\dynamic" /I"C:\Users\peyton\Desktop\Galileo-3D-Printer-Firmware\Firmware\packages\openssl.1.0.1.25\build\native\../..//build/native/include/" /I"C:\Users\peyton\Desktop\Galileo-3D-Printer-Firmware\Firmware\packages\zlib.1.2.8.7\build\native\../..//build/native/include/" /I"C:\Users\peyton\Desktop\Galileo-3D-Printer-Firmware\Firmware\packages\Microsoft.IoT.NativeWiring.1.0.0\build\native\\include\avr" /I"C:\Users\peyton\Desktop\Galileo-3D-Printer-Firmware\Firmware\packages\Microsoft.IoT.NativeWiring.1.0.0\build\native\\include" /I"C:\Users\peyton\Desktop\Galileo-3D-Printer-Firmware\Firmware\packages\Microsoft.IoT.SDKFromArduino.1.0.0\build\native\\include" /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D HAS_CPPRESTSDK /D ZLIB_DLL /D HAS_ZLIB /D ARDUINO=100 /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /arch:IA32 /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt /d2nolock Main.cpp
+         Main.cpp
+     1>c:\users\peyton\desktop\galileo-3d-printer-firmware\firmware\firmware\pid_autotune_v0.h(3): warning C4005: 'LIBRARY_VERSION' : macro redefinition
+                 c:\users\peyton\desktop\galileo-3d-printer-firmware\firmware\firmware\pid_v1.h(3) : see previous definition of 'LIBRARY_VERSION'
+     1>c:\users\peyton\desktop\galileo-3d-printer-firmware\firmware\firmware\main.cpp(88): warning C4244: 'argument' : conversion from 'double' to 'unsigned int', possible loss of data
+       Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\peyton\Desktop\Galileo-3D-Printer-Firmware\Firmware\Debug\Firmware.exe" /INCREMENTAL /NOLOGO "C:\Users\peyton\Desktop\Galileo-3D-Printer-Firmware\Firmware\packages\cpprestsdk.2.3.0\build\native\lib\Win32\v120\Debug\Desktop\cpprest120d_2_3.lib" "C:\Users\peyton\Desktop\Galileo-3D-Printer-Firmware\Firmware\packages\openssl.1.0.1.25\build\native\../..//build/native/lib/v120\Win32\Debug\dynamic\ssleay32.lib" "C:\Users\peyton\Desktop\Galileo-3D-Printer-Firmware\Firmware\packages\openssl.1.0.1.25\build\native\../..//build/native/lib/v120\Win32\Debug\dynamic\libeay32.lib" "C:\Users\peyton\Desktop\Galileo-3D-Printer-Firmware\Firmware\packages\zlib.1.2.8.7\build\native\../..//build/native/lib/v120\Win32\Debug\dynamic\cdecl\zlib.lib" mincore.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\peyton\Desktop\Galileo-3D-Printer-Firmware\Firmware\Debug\Firmware.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\peyton\Desktop\Galileo-3D-Printer-Firmware\Firmware\Debug\Firmware.lib" /MACHINE:X86 -d2:-nolock /NODEFAULTLIB:ole32.lib /NODEFAULTLIB:kernel32.lib /NODEFAULTLIB:user32.lib /NODEFAULTLIB:advapi32.lib Debug\Main.obj
+         Debug\PID_AutoTune_v0.obj
+         Debug\PID_v1.obj
+         Debug\stdafx.obj
+         Debug\TemperatureReader.obj
+         Debug\LiquidCrystal.obj
+         Debug\Print.obj
+         Debug\Stepper.obj
+         Debug\Stream.obj
+         Debug\WString.obj
+         Debug\eeprom.obj
+         Debug\Servo.obj
+         Debug\HardwareSerial.obj
+         Debug\NetworkSerial.obj
+         Debug\PulseIn.obj
+         Debug\DmapSupport.obj
+         Debug\GalileoPins.obj
+         Debug\GpioController.obj
+         Debug\I2cController.obj
+         Debug\PCA9685Support.obj
+         Debug\PCAL9535ASupport.obj
+         Debug\CY8C9540ASupport.obj
+         Debug\Spi.obj
+         Debug\SpiController.obj
+         Debug\WInterrupt.obj
+         Debug\arduino.obj
+         Firmware.vcxproj -> C:\Users\peyton\Desktop\Galileo-3D-Printer-Firmware\Firmware\Debug\Firmware.exe
+     1>Done Building Project "C:\Users\peyton\Desktop\Galileo-3D-Printer-Firmware\Firmware\Firmware\Firmware.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:03.86
