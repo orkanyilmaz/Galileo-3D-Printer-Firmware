@@ -16,6 +16,24 @@ using namespace web::http;                  // Common HTTP functionality
 using namespace web::http::client;          // HTTP client features
 using namespace concurrency::streams;       // Asynchronous streams
 
+#define FAN_SWITCH 3
+#define HOT_BED_SWTICH 5
+#define HOT_END_SWITCH 6
+
+#define Z_AXIS_DIR 8
+#define Z_AXIS_1_STEP 9
+#define Z_AXIS_2_STEP 10
+
+#define Y_AXIS_DIR 0
+#define Y_AXIS_1_STEP 1
+#define Y_AXIS_2_STEP 2
+
+#define X_AXIS_1_DIR 11
+#define X_AXIS_1_STEP 12
+
+#define EXTRUDER_DIR 4
+#define EXTRUDER_STEP 13
+
 int _tmain(int argc, _TCHAR* argv[])
 {
     return RunArduinoSketch();
