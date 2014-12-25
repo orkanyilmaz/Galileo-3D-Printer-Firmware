@@ -9,7 +9,7 @@ using namespace concurrency::streams;       // Asynchronous streams
 
 class TemperatureReader
 {
-	#define NUMSAMPLES 5
+	#define NUMSAMPLES 10
 	#define ROOMTEMP 25
 
 	int currentTestId;

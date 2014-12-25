@@ -38,14 +38,20 @@ float TemperatureReader::GetEndTemp(http_client web_client, uri_builder resource
 	float hotEndTempAverage = 0;
 	for (int j = 0; j < NUMSAMPLES; j++)
 	{
-		float hotEndAverage = 0;
+		int hotEndAverage = 0;
 		int i;
 		for (i = 0; i < NUMSAMPLES; i++) {
 			hotEndAverage += analogRead(temperaturePin);
-			delay(10);
+			delay(5);
 		}
 		hotEndAverage /= NUMSAMPLES;
 		hotEndAverage *= 6;
+		if (hotEndAverage > 1023)
+		{
+
+			//Log(L"Analog Raeding: %i\n", hotEndAverage);
+			hotEndAverage = 1022;
+		}
 		float hotEndResistance = 0;
 
 		hotEndResistance = 1023 - hotEndAverage;
