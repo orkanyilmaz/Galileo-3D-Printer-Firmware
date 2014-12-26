@@ -16,8 +16,9 @@ class TemperatureReader
 	float temperaturePin;
 	int readingSendCount;
 	public:
+		int GetReadingSendCount();
 		TemperatureReader(int tempPin);
-		void BeginNewRecording(http_client web_client, uri_builder resourceUrl);
+		void BeginNewRecording(http_client web_client, uri_builder resourceUrl, float newKp, float ki, float kd);
 		void AddTemperatureReading(http_client web_client, uri_builder resourceUrl, double temperature);
 		float GetEndTemp(http_client web_client, uri_builder resourceUrl);
 };

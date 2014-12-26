@@ -49,11 +49,11 @@ byte ATuneModeRemember = 2;
 http_client web_client(U("http://archos.azurewebsites.net"));
 TemperatureReader temp_reader(HOT_END_TEMP);
 
-double input = 0, kp = 5.125940, ki = .094526, kd = 69.492371, setpoint = 150;
+double input = 0, kp = 2.61, ki = 0.12528, kd = 0, setpoint = 145;
 double output = 0;
 unsigned int aTuneLookBack = 60;
 
-boolean tuning = true;
+boolean tuning = false;
 unsigned long  modelTime, serialTime;
 
 double aTuneStep = 45, aTuneNoise = 1, aTuneStartValue = 45;
@@ -64,7 +64,7 @@ PID_ATune aTune(&input, &output);
 const double e_steps_mm = (STEPS_REV * 1) * (GREGS_GEAR_RATIO) / (7 * 3.14159);
 const int stepper_steps_mm = (STEPS_REV * 1) / (2 * 20);
 
-int tuneCount = 0;
+int readingCount = 0;
 
 void AutoTuneHelper(boolean start);
 void SerialSend();
@@ -76,10 +76,10 @@ void setup()
 {
 	InitializePins();
 	analogWrite(FAN_SWITCH, 180);
-	temp_reader.BeginNewRecording(web_client, uri_builder(U("/Temperature/AddTemperatureTest")));
+	temp_reader.BeginNewRecording(web_client, uri_builder(U("/Temperature/AddTemperatureTest")), kp, ki, kd);
 	aTune.SetControlType(1);
 	heaterPid.SetMode(AUTOMATIC);
-	heaterPid.SetOutputLimits(0, 90);
+	heaterPid.SetOutputLimits(0, 255);
 
 	if (tuning)
 	{
@@ -92,8 +92,19 @@ void setup()
 }
 void loop()
 {
+	//if (readingCount > 200)
+	//{
+	//	readingCount = 0;
+	//	if (ki == 4)
+	//	{
+	//		_exit_arduino_loop();
+	//	}
+	//	double newKi = heaterPid.GetKi() + 1;
+	//	heaterPid.SetTunings(heaterPid.GetKp(), newKi, heaterPid.GetKd());
+	//	temp_reader.BeginNewRecording(web_client, uri_builder(U("/Temperature/AddTemperatureTest")), kp, newKi, kd);
+	//}
 	unsigned long now = millis();
-
+	//if (temp_reader.GetReadingSendCount() == 4) readingCount++;
 	input = temp_reader.GetEndTemp(web_client, uri_builder(U("/Temperature/AddTemperatureTestData")));
 
 
@@ -114,18 +125,6 @@ void loop()
 			Log(L"Kd: %f\n", kd);
 			heaterPid.SetTunings(kp, ki, kd);
 			AutoTuneHelper(false);
-			tuneCount++;
-			if (tuneCount <= 8)
-			{
-				tuning = false;
-				changeAutoTune();
-				tuning = true;
-				
-			}
-			else
-			{
-
-			}
 		}
 	}
 	else heaterPid.Compute();
@@ -187,7 +186,7 @@ void SerialSend()
 	Log(L"Kp: %f,", heaterPid.GetKp());
 	Log(L"Ki: %f,", heaterPid.GetKi());
 	Log(L"Kd: %f\n", heaterPid.GetKd());
-	Log(L"Tuning: " + tuning ? "True\n": "False\n");
+	Log(L"Reading Count: %i\n", readingCount);
 	Log(L"setpoint: %f\n", setpoint);
 	Log(L"input: %f\n", input);
 	Log(L"output: %f\n", output);

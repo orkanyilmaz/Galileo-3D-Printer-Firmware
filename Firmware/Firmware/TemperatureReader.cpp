@@ -6,10 +6,14 @@ TemperatureReader::TemperatureReader(int tempPin)
 {
 	temperaturePin = tempPin;
 }
-void TemperatureReader::BeginNewRecording(http_client web_client, uri_builder resourceUrl)
+void TemperatureReader::BeginNewRecording(http_client web_client, uri_builder resourceUrl, float newKp, float ki, float kd)
 {
 	try
 	{
+
+		resourceUrl.append_query(U("kp"), utility::conversions::to_string_t(std::to_string(newKp)));
+		resourceUrl.append_query(U("ki"), utility::conversions::to_string_t(std::to_string(ki)));
+		resourceUrl.append_query(U("kd"), utility::conversions::to_string_t(std::to_string(kd)));
 		pplx::task<string_t> task = web_client.request(web::http::methods::GET, resourceUrl.to_string()).then([=](web::http::http_response response)
 		{
 			return response.extract_string();
@@ -32,7 +36,10 @@ void TemperatureReader::AddTemperatureReading(http_client web_client, uri_builde
 	});
 	task.wait();
 }
-
+int TemperatureReader::GetReadingSendCount()
+{
+	return readingSendCount;
+}
 float TemperatureReader::GetEndTemp(http_client web_client, uri_builder resourceUrl)
 {
 	float hotEndTempAverage = 0;
