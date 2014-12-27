@@ -40,6 +40,10 @@ int TemperatureReader::GetReadingSendCount()
 {
 	return readingSendCount;
 }
+bool TemperatureReader::IsStable()
+{
+	return stable;
+}
 float TemperatureReader::GetEndTemp(http_client web_client, uri_builder resourceUrl)
 {
 	float hotEndTempAverage = 0;
@@ -77,8 +81,23 @@ float TemperatureReader::GetEndTemp(http_client web_client, uri_builder resource
 	readingSendCount++;
 	if (readingSendCount == 5)
 	{
+		for (int i = 5 - 1; i >= 0; i--)
+		{
+			tempHistory[i] = tempHistory[i - 1];
+			if (i == 0)	tempHistory[0] = hotEndTempAverage;
+		}
+
+
 		AddTemperatureReading(web_client, resourceUrl, hotEndTempAverage);
 		readingSendCount = 0;
+	}
+
+
+	if ((tempHistory[0] + tempHistory[1] + tempHistory[2] + tempHistory[3] + tempHistory[4]) / 5 < 192 && (tempHistory[0] + tempHistory[1] + tempHistory[2] + tempHistory[3] + tempHistory[4]) / 5 > 188 && stable == false)
+	{
+		mutex.lock();
+		stable = true;
+		mutex.unlock();
 	}
 	return hotEndTempAverage;
 }

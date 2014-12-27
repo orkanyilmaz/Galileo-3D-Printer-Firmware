@@ -3,6 +3,7 @@
 #include <cpprest/http_client.h>
 #include <cpprest/filestream.h>
 #include "tinythread.h"
+#include "fast_mutex.h"
 
 #include "PID_v1.h"
 #include "PID_AutoTune_v0.h"
@@ -53,6 +54,7 @@ TemperatureReader temp_reader(HOT_END_TEMP);
 
 //double input = 0, kp = 2.61, ki = 0.12528, kd = 0, setpoint = 175;
 double input = 0, kp = .9675, ki = 0.049923, kd = 0, setpoint = 190;
+//double input = 0, kp = 1.1925, ki = 0.05724, kd = 0, setpoint = 190;
 double output = 0;
 unsigned int aTuneLookBack = 60;
 
@@ -68,13 +70,15 @@ const double e_steps_mm = (STEPS_REV * 1) * (GREGS_GEAR_RATIO) / (7 * 3.14159);
 const int stepper_steps_mm = (STEPS_REV * 1) / (2 * 20);
 
 int readingCount = 0;
+bool stable = false;
+
 
 void AutoTuneHelper(boolean start);
 void SerialSend();
 void changeAutoTune();
 void InitializePins();
 void print_mm(int mm, char axis);
-
+void extrude_mm(int mm);
 void controlTemp(void * aArg);
 
 void setup()
@@ -104,10 +108,15 @@ void setup()
 
 	}
 
+
+
 }
 void loop()
 {
-
+	if (temp_reader.IsStable())
+	{
+		extrude_mm(5);
+	}
 }
 
 void changeAutoTune()
@@ -188,7 +197,7 @@ void extrude_mm(int mm)
 	int step1Pin = EXTRUDER_STEP;
 	int direction1Pin = EXTRUDER_DIR;
 
-	digitalWrite(direction1Pin, HIGH);
+	digitalWrite(direction1Pin, LOW);
 	for (int miliMeters = 0; miliMeters < mm; miliMeters++)
 	{
 		for (int i = 0; i < stepper_steps_mm; i++)
@@ -196,12 +205,14 @@ void extrude_mm(int mm)
 			for (int j = 0; j < floor(e_steps_mm / stepper_steps_mm); j++)
 			{
 				digitalWrite(step1Pin, HIGH);
-				delayMicroseconds(10000);
+				delayMicroseconds(25);
 
 				digitalWrite(step1Pin, LOW);
-				delayMicroseconds(10000);
+				delayMicroseconds(25);
 			}
+
 		}
+		print_mm(1, 'X');
 	}
 }
 void print_mm(int mm, char axis)
@@ -236,11 +247,11 @@ void print_mm(int mm, char axis)
 		{
 			digitalWrite(step1Pin, HIGH);
 			if (step2Pin != -1) digitalWrite(step2Pin, HIGH);
-			delayMicroseconds(10000);
+			delayMicroseconds(25);
 
 			digitalWrite(step1Pin, LOW);
 			if (step2Pin != -1) digitalWrite(step2Pin, LOW);
-			delayMicroseconds(10000);
+			delayMicroseconds(25);
 
 		}
 	}
@@ -252,7 +263,7 @@ void controlTemp(void * aArg)
 	{
 		while (true)
 		{
-			//if (readingCount > 150)
+			//if (readingCount > 50)
 			//{
 			//	readingCount = 0;
 			//	if (kp >= 3)
@@ -263,8 +274,8 @@ void controlTemp(void * aArg)
 			//	heaterPid.SetTunings(newKp, heaterPid.GetKi(), heaterPid.GetKd());
 			//	temp_reader.BeginNewRecording(web_client, uri_builder(U("/Temperature/AddTemperatureTest")), newKp, ki, kd);
 			//}
-			//unsigned long now = millis();
-			//if (temp_reader.GetReadingSendCount() == 19) readingCount++;
+			unsigned long now = millis();
+			if (temp_reader.GetReadingSendCount() == 49) readingCount++;
 			input = temp_reader.GetEndTemp(web_client, uri_builder(U("/Temperature/AddTemperatureTestData")));
 
 
