@@ -52,9 +52,9 @@ byte ATuneModeRemember = 2;
 http_client web_client(U("http://archos.azurewebsites.net"));
 TemperatureReader temp_reader(HOT_END_TEMP);
 
-//double input = 0, kp = 2.61, ki = 0.12528, kd = 0, setpoint = 175;
-double input = 0, kp = .9675, ki = 0.049923, kd = 0, setpoint = 190;
-//double input = 0, kp = 1.1925, ki = 0.05724, kd = 0, setpoint = 190;
+//double input = 0, kp = 2.61, ki = 0.12528, kd = 0, setpoint = 175; // 145
+//double input = 0, kp = .9675, ki = 0.049923, kd = 0, setpoint = 210; // 190
+double input = 0, kp = 18.676056338028169014084507042254, ki = 2.25, kd = 1.25, setpoint = 125;
 double output = 0;
 unsigned int aTuneLookBack = 60;
 
@@ -83,9 +83,10 @@ void controlTemp(void * aArg);
 
 void setup()
 {
+	InitializePins();
 	try
 	{
-		InitializePins();
+
 		analogWrite(FAN_SWITCH, 180);
 		temp_reader.BeginNewRecording(web_client, uri_builder(U("/Temperature/AddTemperatureTest")), kp, ki, kd);
 		aTune.SetControlType(1);
@@ -113,10 +114,13 @@ void setup()
 }
 void loop()
 {
-	if (temp_reader.IsStable())
-	{
-		extrude_mm(5);
-	}
+	//InitializePins();
+	//Log(L"%f\n",temp_reader.GetEndTemp(web_client, uri_builder(U("/Temperature/AddTemperatureTestData"))));
+	//delay(1000);
+	//if (temp_reader.IsStable())
+	//{
+	//	extrude_mm(5);
+	//}
 }
 
 void changeAutoTune()
@@ -162,7 +166,7 @@ void SerialSend()
 void InitializePins()
 {
 	pinMode(FAN_SWITCH, OUTPUT);
-	analogWrite(FAN_SWITCH, 0);
+	analogWrite(FAN_SWITCH, LOW);
 	pinMode(HOT_BED_SWITCH, OUTPUT);
 	analogWrite(HOT_BED_SWITCH, 0);
 	pinMode(HOT_END_SWITCH, OUTPUT);
@@ -266,7 +270,7 @@ void controlTemp(void * aArg)
 			//if (readingCount > 50)
 			//{
 			//	readingCount = 0;
-			//	if (kp >= 3)
+			//	if (kp >= 2.5)
 			//	{
 			//		_exit_arduino_loop();
 			//	}
@@ -275,7 +279,7 @@ void controlTemp(void * aArg)
 			//	temp_reader.BeginNewRecording(web_client, uri_builder(U("/Temperature/AddTemperatureTest")), newKp, ki, kd);
 			//}
 			unsigned long now = millis();
-			if (temp_reader.GetReadingSendCount() == 49) readingCount++;
+			//if (temp_reader.GetReadingSendCount() == 4) readingCount++;
 			input = temp_reader.GetEndTemp(web_client, uri_builder(U("/Temperature/AddTemperatureTestData")));
 
 
