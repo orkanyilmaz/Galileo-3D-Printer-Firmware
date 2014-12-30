@@ -46,40 +46,52 @@ bool TemperatureReader::IsStable()
 }
 float TemperatureReader::GetEndTemp(http_client web_client, uri_builder resourceUrl)
 {
-	float hotEndTempAverage = 0;
-	for (int j = 0; j < NUMSAMPLES; j++)
+	int raw = 0;
+	for (int i = 0; i < NUMSAMPLES; i++)
 	{
-		int hotEndAverage = 0;
-		int i;
-		for (i = 0; i < NUMSAMPLES; i++) {
-			hotEndAverage += analogRead(temperaturePin);
-			delay(5);
-		}
-		hotEndAverage /= NUMSAMPLES;
-		hotEndAverage *= 6;
-		if (hotEndAverage > 1023)
-		{
-
-			//Log(L"Analog Raeding: %i\n", hotEndAverage);
-			hotEndAverage = 1022;
-		}
-		float hotEndResistance = 0;
-
-		hotEndResistance = 1023 - hotEndAverage;
-		hotEndResistance *= 100000 / hotEndAverage;
-
-		float hotEndTemp = hotEndResistance / 100000;
-		hotEndTemp = log(hotEndTemp);
-		hotEndTemp /= 3974;
-		hotEndTemp += 1.0 / (ROOMTEMP + 273.15);
-		hotEndTemp = 1.0 / hotEndTemp;
-		hotEndTemp -= 273.15;
-		hotEndTempAverage += hotEndTemp;
+		raw += analogRead(temperaturePin);
+		delay(10);
 	}
-	hotEndTempAverage /= NUMSAMPLES;
+	raw /= NUMSAMPLES;
+	double hotEndTempAverage = (5.0 * raw * 100.0) / 1024.0;
+	//for (int j = 0; j < NUMSAMPLES; j++)
+	//{
+	//	int hotEndAverage = 0;
+	//	int i;
+	//	for (i = 0; i < NUMSAMPLES; i++) {
+	//		hotEndAverage += analogRead(temperaturePin);
+	//		delay(5);
+	//	}
+	//	hotEndAverage /= NUMSAMPLES;
+	//	hotEndAverage *= 12;
+	//	if (hotEndAverage > 1023)
+	//	{
+
+	//		//Log(L"Analog Raeding: %i\n", hotEndAverage);
+	//		hotEndAverage = 1022;
+	//	}
+
+	//	float hotEndResistance = 0;
+
+
+	//	hotEndResistance = 1023 - hotEndAverage;
+	//	hotEndResistance *= 100000 / hotEndAverage;
+
+	//	//float voltage = hotEndAverage * 5 / 1024;
+	//	//float hotEndResistance = 100000 * voltage / (5 - voltage);
+
+	//	float hotEndTemp = hotEndResistance / 100000;
+	//	hotEndTemp = log(hotEndTemp);
+	//	hotEndTemp /= 3974;
+	//	hotEndTemp += 1.0 / (ROOMTEMP + 273.15);
+	//	hotEndTemp = 1.0 / hotEndTemp;
+	//	hotEndTemp -= 273.15;
+	//	hotEndTempAverage += hotEndTemp;
+	//}
+	//hotEndTempAverage /= NUMSAMPLES;
 
 	readingSendCount++;
-	if (readingSendCount == 5)
+	if (readingSendCount == 25)
 	{
 		for (int i = 5 - 1; i >= 0; i--)
 		{
@@ -92,7 +104,7 @@ float TemperatureReader::GetEndTemp(http_client web_client, uri_builder resource
 		readingSendCount = 0;
 	}
 
-
+	
 	if ((tempHistory[0] + tempHistory[1] + tempHistory[2] + tempHistory[3] + tempHistory[4]) / 5 < 192 && (tempHistory[0] + tempHistory[1] + tempHistory[2] + tempHistory[3] + tempHistory[4]) / 5 > 188 && stable == false)
 	{
 		mutex.lock();

@@ -53,8 +53,10 @@ http_client web_client(U("http://archos.azurewebsites.net"));
 TemperatureReader temp_reader(HOT_END_TEMP);
 
 //double input = 0, kp = 2.61, ki = 0.12528, kd = 0, setpoint = 175; // 145
-//double input = 0, kp = .9675, ki = 0.049923, kd = 0, setpoint = 210; // 190
-double input = 0, kp = 18.676056338028169014084507042254, ki = 2.25, kd = 1.25, setpoint = 125;
+double input = 0, kp = .9675, ki = 0.049923, kd = 0, setpoint = 190; // 190
+//double input = 0, kp = .9675, ki = 0.01248075, kd = 0, setpoint = 190; // 190 0.049923
+//double input = 0, kp = 18.676056338028169014084507042254, ki = 2.25, kd = 1.25, setpoint = 125; // 75
+//double input = 0, kp = 1, ki = .25, kd = 0, setpoint = 215;
 double output = 0;
 unsigned int aTuneLookBack = 60;
 
@@ -87,7 +89,7 @@ void setup()
 	try
 	{
 
-		analogWrite(FAN_SWITCH, 180);
+		//analogWrite(FAN_SWITCH, 0);
 		temp_reader.BeginNewRecording(web_client, uri_builder(U("/Temperature/AddTemperatureTest")), kp, ki, kd);
 		aTune.SetControlType(1);
 		heaterPid.SetMode(AUTOMATIC);
@@ -110,7 +112,7 @@ void setup()
 	}
 
 
-
+	
 }
 void loop()
 {
@@ -119,8 +121,10 @@ void loop()
 	//delay(1000);
 	//if (temp_reader.IsStable())
 	//{
-	//	extrude_mm(5);
+		//extrude_mm(5);
 	//}
+
+
 }
 
 void changeAutoTune()
@@ -267,7 +271,7 @@ void controlTemp(void * aArg)
 	{
 		while (true)
 		{
-			//if (readingCount > 50)
+			//if (readingCount >= 100)
 			//{
 			//	readingCount = 0;
 			//	if (kp >= 2.5)
@@ -280,6 +284,7 @@ void controlTemp(void * aArg)
 			//}
 			unsigned long now = millis();
 			//if (temp_reader.GetReadingSendCount() == 4) readingCount++;
+			
 			input = temp_reader.GetEndTemp(web_client, uri_builder(U("/Temperature/AddTemperatureTestData")));
 
 
