@@ -52,11 +52,11 @@ byte ATuneModeRemember = 2;
 http_client web_client(U("http://archos.azurewebsites.net"));
 TemperatureReader temp_reader(HOT_END_TEMP);
 
-double input = 0, kp = 22.350830, ki = 0.556857, kd = 175, setpoint = 245; // 145
+//double input = 0, kp = 22.350830, ki = 0.556857, kd = 175, setpoint = 245; // 145
 //double input = 0, kp = .9675, ki = 0.049923, kd = 0, setpoint = 190; // 190
 //double input = 0, kp = .9675, ki = 0.01248075, kd = 0, setpoint = 190; // 190 0.049923
 //double input = 0, kp = 18.676056338028169014084507042254, ki = 2.25, kd = 1.25, setpoint = 220; // 75
-//double input = 0, kp = 16, ki = 0, kd = 0, setpoint = 190;
+double input = 0, kp = 16, ki = 0, kd = 0, setpoint = 230;
 double output = 0;
 unsigned int aTuneLookBack = 60;
 
@@ -67,7 +67,7 @@ double aTuneStep = 120, aTuneNoise = 1, aTuneStartValue = 120;
 
 PID heaterPid(&input, &output, &setpoint, kp, ki, kd, DIRECT);
 PID_ATune aTune(&input, &output);
-
+//
 const double e_steps_mm = (STEPS_REV * 1) * (GREGS_GEAR_RATIO) / (7 * 3.14159);
 const int stepper_steps_mm = (STEPS_REV * 1) / (2 * 20);
 
@@ -102,10 +102,6 @@ void setup()
 			tuning = true;
 		}
 		//print_mm(1, 'Z');
-		while (input = temp_reader.GetEndTemp(web_client, uri_builder(U("/Temperature/AddTemperatureTestData"))) < 70)
-		{
-			analogWrite(HOT_END_SWITCH, 255);
-		}
 		serialTime = 0;
 		thread tempControl(controlTemp, 0);
 		tempControl.detach();
@@ -115,7 +111,7 @@ void setup()
 
 	}
 
-
+	//extrude_mm(3);
 	
 }
 void loop()
@@ -322,11 +318,11 @@ void controlTemp(void * aArg)
 				}
 			}
 			else 
-			heaterPid.Compute();
+			//heaterPid.Compute();
 
 			//if (input < 250)
 			//{
-			analogWrite(HOT_END_SWITCH, output);
+			analogWrite(HOT_END_SWITCH, 0);
 			//}
 			//else
 			//{
@@ -351,6 +347,6 @@ void controlTemp(void * aArg)
 	}
 	catch (std::exception& e)
 	{
-
+		Log(L"%s", e);
 	}
 }

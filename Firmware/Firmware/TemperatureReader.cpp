@@ -23,7 +23,7 @@ void TemperatureReader::BeginNewRecording(http_client web_client, uri_builder re
 	}
 	catch (std::exception& e)
 	{
-
+		Log(L"%s", (utility::conversions::to_utf8string(resourceUrl.to_string())));
 	}
 }
 void TemperatureReader::AddTemperatureReading(http_client web_client, uri_builder resourceUrl, double temperature)
@@ -46,7 +46,7 @@ bool TemperatureReader::IsStable()
 }
 float TemperatureReader::GetEndTemp(http_client web_client, uri_builder resourceUrl)
 {
-	int raw = 0;
+	double raw = 0;
 	for (int i = 0; i < NUMSAMPLES; i++)
 	{
 		raw += analogRead(temperaturePin);
@@ -54,7 +54,7 @@ float TemperatureReader::GetEndTemp(http_client web_client, uri_builder resource
 	}
 	raw /= NUMSAMPLES;
 	raw *= 1.75;
-	double hotEndTempAverage = (5.0 * raw * 100.0) / 1024.0;
+	double hotEndTempAverage = (12 * raw * 100.0) / 1024.0;
 	//for (int j = 0; j < NUMSAMPLES; j++)
 	//{
 	//	int hotEndAverage = 0;
