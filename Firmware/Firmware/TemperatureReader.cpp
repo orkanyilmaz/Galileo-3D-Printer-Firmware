@@ -54,7 +54,7 @@ float TemperatureReader::GetEndTemp(http_client web_client, uri_builder resource
 	}
 	raw /= NUMSAMPLES;
 	raw *= 1.75;
-	double hotEndTempAverage = (12 * raw * 100.0) / 1024.0;
+	double hotEndTempAverage = (5 * raw * 100.0) / 1024.0;
 	//for (int j = 0; j < NUMSAMPLES; j++)
 	//{
 	//	int hotEndAverage = 0;
