@@ -111,7 +111,7 @@ void setup()
 
 	}
 
-	//extrude_mm(3);
+	//extrude_mm(1);
 	
 }
 void loop()
