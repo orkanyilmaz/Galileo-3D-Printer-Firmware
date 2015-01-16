@@ -29,18 +29,18 @@ using namespace tthread;
 #define HOT_BED_SWITCH 5
 #define HOT_END_SWITCH 6
 
-#define Z_AXIS_DIR 8
-#define Z_AXIS_1_STEP 9
-#define Z_AXIS_2_STEP 10
+#define Z_AXIS_DIR 7
+#define Z_AXIS_1_STEP 10
+#define Z_AXIS_2_STEP 11
 
 #define Y_AXIS_1_DIR 0
 #define Y_AXIS_1_STEP 1
-#define Y_AXIS_2_STEP 2
+#define Y_AXIS_2_STEP 4
 
-#define X_AXIS_1_DIR 11
-#define X_AXIS_1_STEP 12
+#define X_AXIS_1_DIR 8
+#define X_AXIS_1_STEP 9
 
-#define EXTRUDER_DIR 4
+#define EXTRUDER_DIR 12
 #define EXTRUDER_STEP 13
 
 int _tmain(int argc, _TCHAR* argv[])
@@ -56,9 +56,9 @@ TemperatureReader temp_reader(HOT_END_TEMP);
 //double input = 0, kp = .9675, ki = 0.049923, kd = 0, setpoint = 190; // 190
 //double input = 0, kp = .9675, ki = 0.01248075, kd = 0, setpoint = 190; // 190 0.049923
 //double input = 0, kp = 18.676056338028169014084507042254, ki = 2.25, kd = 1.25, setpoint = 220; // 75
-double input = 0, kp = 16, ki = 0, kd = 0, setpoint = 230;
+double input = 0, kp = 30, ki = 0, kd = 0, setpoint = 90;
 double output = 0;
-unsigned int aTuneLookBack = 60;
+unsigned int aTuneLookBack = 30;
 
 boolean tuning = false;
 unsigned long  modelTime, serialTime;
@@ -68,11 +68,19 @@ double aTuneStep = 120, aTuneNoise = 1, aTuneStartValue = 120;
 PID heaterPid(&input, &output, &setpoint, kp, ki, kd, DIRECT);
 PID_ATune aTune(&input, &output);
 //
-const double e_steps_mm = (STEPS_REV * 1) * (GREGS_GEAR_RATIO) / (7 * 3.14159);
+double e_steps_mm = (STEPS_REV * 1) * (GREGS_GEAR_RATIO) / (7 * 3.14159);
+double layerHeight = .20;
 const int stepper_steps_mm = (STEPS_REV * 1) / (2 * 20);
 
 int readingCount = 0;
 bool stable = false;
+
+bool xDirection = false; //False = Left, True = Right
+bool yDirection = true; //False = Up, True = Down
+bool zDirection = false; //False = Forwards, True = Backwards
+bool eDirection = false; //False = Extrude, True = Retract
+
+int microSecondsPerStep = 100;
 
 int tuningCount = 0;
 void AutoTuneHelper(boolean start);
@@ -80,9 +88,9 @@ void SerialSend();
 void changeAutoTune();
 void InitializePins();
 void print_mm(int mm, char axis);
-void extrude_mm(int mm);
+void extrude_mm(int mm, bool shouldStep);
 void controlTemp(void * aArg);
-
+void step(char axis);
 void setup()
 {
 	InitializePins();
@@ -110,14 +118,22 @@ void setup()
 	{
 
 	}
-
-	//extrude_mm(1);
-	
+	extrude_mm(5, false);
+	for (int i = 0; i < 20; i++)
+	{
+		for (int j = 0; j < 20; j++)
+		{
+			extrude_mm(1, true);
+		}
+		print_mm(1, 'Y');
+		xDirection = !xDirection;
+	}
+	print_mm(3, 'Y');
 }
 void loop()
 {
 	//InitializePins();
-
+	//print_mm(1, 'X');
 	//Log(L"%f\n",temp_reader.GetEndTemp(web_client, uri_builder(U("/Temperature/AddTemperatureTestData"))));
 	//delay(1000);
 	//if (temp_reader.IsStable())
@@ -171,7 +187,7 @@ void SerialSend()
 void InitializePins()
 {
 	pinMode(FAN_SWITCH, OUTPUT);
-	analogWrite(FAN_SWITCH, LOW);
+	analogWrite(FAN_SWITCH, 0);
 	pinMode(HOT_BED_SWITCH, OUTPUT);
 	analogWrite(HOT_BED_SWITCH, 0);
 	pinMode(HOT_END_SWITCH, OUTPUT);
@@ -201,28 +217,85 @@ void InitializePins()
 	pinMode(EXTRUDER_STEP, OUTPUT);
 	digitalWrite(EXTRUDER_STEP, 0);
 }
-void extrude_mm(int mm)
+void extrude_mm(int mm, bool shouldStep)
 {
 	int step1Pin = EXTRUDER_STEP;
 	int direction1Pin = EXTRUDER_DIR;
 
-	digitalWrite(direction1Pin, LOW);
+	if (!eDirection)
+		digitalWrite(direction1Pin, LOW);
+	else
+		digitalWrite(direction1Pin, HIGH);
+	double stepsPerMM = 8 / floor(e_steps_mm*layerHeight);
+	double stepCount = 0;
+	int previousStep = 0;
 	for (int miliMeters = 0; miliMeters < mm; miliMeters++)
 	{
-		for (int i = 0; i < stepper_steps_mm; i++)
+		for (int j = 0; j < floor(e_steps_mm*layerHeight); j++)
 		{
-			for (int j = 0; j < floor(e_steps_mm / stepper_steps_mm); j++)
+			digitalWrite(step1Pin, HIGH);
+			delayMicroseconds(microSecondsPerStep);
+
+			digitalWrite(step1Pin, LOW);
+			delayMicroseconds(microSecondsPerStep);
+			stepCount += stepsPerMM;
+
+			if (floor(stepCount) != previousStep)
 			{
-				digitalWrite(step1Pin, HIGH);
-				delayMicroseconds(25);
-
-				digitalWrite(step1Pin, LOW);
-				delayMicroseconds(25);
+				if (shouldStep)
+					step('X');
+				previousStep = floor(stepCount);
 			}
-
 		}
-		print_mm(1, 'X');
+		previousStep = 0;
+		stepCount = 0;
+
 	}
+}
+void step(char axis)
+{
+	int direction2Pin = -1;
+	int direction1Pin = -1;
+	int step1Pin = -1;
+	int step2Pin = -1;
+	switch (axis)
+	{
+	case 'X':
+		step1Pin = X_AXIS_1_STEP;
+		direction1Pin = X_AXIS_1_DIR;
+		if (!xDirection)
+			digitalWrite(direction1Pin, LOW);
+		else
+			digitalWrite(direction1Pin, HIGH);
+		break;
+	case 'Y':
+		step1Pin = Y_AXIS_1_STEP;
+		step2Pin = Y_AXIS_2_STEP;
+		direction1Pin = Y_AXIS_1_DIR;
+		if (!yDirection)
+			digitalWrite(direction1Pin, LOW);
+		else
+			digitalWrite(direction1Pin, HIGH);
+		break;
+	case 'Z':
+		step1Pin = Z_AXIS_1_STEP;
+		step2Pin = Z_AXIS_2_STEP;
+		direction1Pin = Z_AXIS_DIR;
+		if (!zDirection)
+			digitalWrite(direction1Pin, LOW);
+		else
+			digitalWrite(direction1Pin, HIGH);
+		break;
+	}
+	//digitalWrite(direction1Pin, HIGH);
+
+			digitalWrite(step1Pin, HIGH);
+			if (step2Pin != -1) digitalWrite(step2Pin, HIGH);
+			delayMicroseconds(microSecondsPerStep);
+
+			digitalWrite(step1Pin, LOW);
+			if (step2Pin != -1) digitalWrite(step2Pin, LOW);
+			delayMicroseconds(microSecondsPerStep);
 }
 void print_mm(int mm, char axis)
 {
@@ -235,32 +308,42 @@ void print_mm(int mm, char axis)
 	case 'X':
 		step1Pin = X_AXIS_1_STEP;
 		direction1Pin = X_AXIS_1_DIR;
+		if (!xDirection)
+			digitalWrite(direction1Pin, LOW);
+		else
+			digitalWrite(direction1Pin, HIGH);
 		break;
 	case 'Y':
 		step1Pin = Y_AXIS_1_STEP;
 		step2Pin = Y_AXIS_2_STEP;
 		direction1Pin = Y_AXIS_1_DIR;
+		if (!yDirection)
+			digitalWrite(direction1Pin, LOW);
+		else
+			digitalWrite(direction1Pin, HIGH);
 		break;
 	case 'Z':
 		step1Pin = Z_AXIS_1_STEP;
 		step2Pin = Z_AXIS_2_STEP;
 		direction1Pin = Z_AXIS_DIR;
+		if (!zDirection)
+			digitalWrite(direction1Pin, LOW);
+		else
+			digitalWrite(direction1Pin, HIGH);
 		break;
 	}
-	digitalWrite(direction1Pin, HIGH);
-
 	for (int miliMeters = 0; miliMeters < mm; miliMeters++)
 	{
 
-		for (int i = 0; i < 10; i++)
+		for (int i = 0; i < 8; i++)
 		{
 			digitalWrite(step1Pin, HIGH);
 			if (step2Pin != -1) digitalWrite(step2Pin, HIGH);
-			delayMicroseconds(25);
+			delayMicroseconds(microSecondsPerStep);
 
 			digitalWrite(step1Pin, LOW);
 			if (step2Pin != -1) digitalWrite(step2Pin, LOW);
-			delayMicroseconds(25);
+			delayMicroseconds(microSecondsPerStep);
 
 		}
 	}
@@ -275,17 +358,18 @@ void controlTemp(void * aArg)
 			//if (readingCount >= 100)
 			//{
 			//	readingCount = 0;
-			//	if (kp >= 2.5)
+			//	if (kp >= 25)
 			//	{
+			//		InitializePins();
 			//		_exit_arduino_loop();
 			//	}
-			//	double newKp = heaterPid.GetKp() + .05;
+			//	double newKp = heaterPid.GetKp() + 1;
 			//	heaterPid.SetTunings(newKp, heaterPid.GetKi(), heaterPid.GetKd());
 			//	temp_reader.BeginNewRecording(web_client, uri_builder(U("/Temperature/AddTemperatureTest")), newKp, ki, kd);
 			//}
-			unsigned long now = millis();
+			//unsigned long now = millis();
 			//if (temp_reader.GetReadingSendCount() == 4) readingCount++;
-			
+			//
 			input = temp_reader.GetEndTemp(web_client, uri_builder(U("/Temperature/AddTemperatureTestData")));
 
 
@@ -306,23 +390,16 @@ void controlTemp(void * aArg)
 					Log(L"Kd: %f\n", kd);
 					heaterPid.SetTunings(kp, ki, kd);
 					AutoTuneHelper(false);
-					tuningCount++;
-					if (tuningCount <= 1)
-					{
-
-							tuning = false;
-							changeAutoTune();
-							tuning = true;
-						
-					}
 				}
 			}
 			else 
-			//heaterPid.Compute();
+			heaterPid.Compute();
 
 			//if (input < 250)
-			//{
-			analogWrite(HOT_END_SWITCH, 0);
+			////{
+			analogWrite(HOT_END_SWITCH, output);
+			analogWrite(HOT_BED_SWITCH, 35);
+			analogWrite(FAN_SWITCH, 120);
 			//}
 			//else
 			//{

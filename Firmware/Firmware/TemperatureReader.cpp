@@ -1,4 +1,4 @@
-#include "TemperatureReader.h"
+﻿#include "TemperatureReader.h"
 #include "stdafx.h"
 #include "arduino.h"
 
@@ -23,18 +23,25 @@ void TemperatureReader::BeginNewRecording(http_client web_client, uri_builder re
 	}
 	catch (std::exception& e)
 	{
-		Log(L"%s", (utility::conversions::to_utf8string(resourceUrl.to_string())));
+		//Log(L"%s", (utility::conversions::to_utf8string(resourceUrl.to_string())));
 	}
 }
 void TemperatureReader::AddTemperatureReading(http_client web_client, uri_builder resourceUrl, double temperature)
 {
-	resourceUrl.append_query(U("temp"), utility::conversions::to_string_t(std::to_string(temperature)));
-	resourceUrl.append_query(U("testId"), utility::conversions::to_string_t(std::to_string(currentTestId)));
-	pplx::task<string_t> task = web_client.request(web::http::methods::GET, resourceUrl.to_string()).then([=](web::http::http_response response)
+	try
 	{
-		return response.extract_string();
-	});
-	task.wait();
+		resourceUrl.append_query(U("temp"), utility::conversions::to_string_t(std::to_string(temperature)));
+		resourceUrl.append_query(U("testId"), utility::conversions::to_string_t(std::to_string(currentTestId)));
+		pplx::task<string_t> task = web_client.request(web::http::methods::GET, resourceUrl.to_string()).then([=](web::http::http_response response)
+		{
+			return response.extract_string();
+		});
+		task.wait();
+	}
+	catch (std::exception& e)
+	{
+
+	}
 }
 int TemperatureReader::GetReadingSendCount()
 {
@@ -46,53 +53,83 @@ bool TemperatureReader::IsStable()
 }
 float TemperatureReader::GetEndTemp(http_client web_client, uri_builder resourceUrl)
 {
-	double raw = 0;
-	for (int i = 0; i < NUMSAMPLES; i++)
-	{
-		raw += analogRead(temperaturePin);
-		delay(10);
-	}
-	raw /= NUMSAMPLES;
-	raw *= 1.75;
-	double hotEndTempAverage = (5 * raw * 100.0) / 1024.0;
-	//for (int j = 0; j < NUMSAMPLES; j++)
+	analogReadResolution(12);
+	//int temp = analogRead(temperaturePin);
+	//for (int i = 1; i<18; i++)
 	//{
-	//	int hotEndAverage = 0;
-	//	int i;
-	//	for (i = 0; i < NUMSAMPLES; i++) {
-	//		hotEndAverage += analogRead(temperaturePin);
-	//		delay(5);
-	//	}
-	//	hotEndAverage /= NUMSAMPLES;
-	//	hotEndAverage *= 12;
-	//	if (hotEndAverage > 1023)
+	//	if (sensorTable.temptable[i][0] > temp)
 	//	{
+	//		int realtemp = sensorTable.temptable[i - 1][1] + (temp - sensorTable.temptable[i - 1][0]) * (sensorTable.temptable[i][1] - sensorTable.temptable[i - 1][1]) / (sensorTable.temptable[i][0] - sensorTable.temptable[i - 1][0]);
+	//		realtemp /= 4;
+	//		if (realtemp > 255)
+	//			realtemp = 255;
 
-	//		//Log(L"Analog Raeding: %i\n", hotEndAverage);
-	//		hotEndAverage = 1022;
+	//		temp = realtemp;
+
+	//		break;
 	//	}
-
-	//	float hotEndResistance = 0;
-
-
-	//	hotEndResistance = 1023 - hotEndAverage;
-	//	hotEndResistance *= 100000 / hotEndAverage;
-
-	//	//float voltage = hotEndAverage * 5 / 1024;
-	//	//float hotEndResistance = 100000 * voltage / (5 - voltage);
-
-	//	float hotEndTemp = hotEndResistance / 100000;
-	//	hotEndTemp = log(hotEndTemp);
-	//	hotEndTemp /= 3974;
-	//	hotEndTemp += 1.0 / (ROOMTEMP + 273.15);
-	//	hotEndTemp = 1.0 / hotEndTemp;
-	//	hotEndTemp -= 273.15;
-	//	hotEndTempAverage += hotEndTemp;
 	//}
-	//hotEndTempAverage /= NUMSAMPLES;
+	//Calculate real temperature based on lookup table
+	//for (int j = 1; j < 18; j++) {
+	//	if (pgm_read_word(&(sensorTable.temptable[j][0])) > temp) {
+	//		temp = (
+	//			//     ((x - x₀)y₁
+	//			((uint32_t)temp - pgm_read_word(&(sensorTable.temptable[j - 1][0]))) * pgm_read_word(&(sensorTable.temptable[j][1]))
+	//			//                 +
+	//			+
+	//			//                   (x₁-x)
+	//			(pgm_read_word(&(sensorTable.temptable[j][0])) - (uint32_t)temp)
+	//			//                         y₀ )
+	//			* pgm_read_word(&(sensorTable.temptable[j - 1][1])))
+	//			//                              /
+	//			/
+	//			//                                (x₁ - x₀)
+	//			(pgm_read_word(&(sensorTable.temptable[j][0])) - pgm_read_word(&(sensorTable.temptable[j - 1][0])));
+	//		break;
+	//	}
+	//}
+	//temp /= 8;
+	//double raw = 0;
+	//for (int i = 0; i < NUMSAMPLES; i++)
+	//{
+	//	raw += analogRead(temperaturePin);
+	//	delay(10);
+	//}
+	//raw /= NUMSAMPLES;
+	//raw *= 1.75;
+	//double hotEndTempAverage = (5 * raw * 100.0) / 1024.0;
+
+	double hotEndTempAverage = 0;
+	for (int j = 0; j < NUMSAMPLES; j++)
+	{
+		int hotEndAverage = 0;
+		int i;
+		for (i = 0; i < NUMSAMPLES; i++) {
+			hotEndAverage += analogRead(temperaturePin);
+			delay(5);
+		}
+		hotEndAverage /= NUMSAMPLES;
+		//float hotEndResistance = 0;
+
+
+		//hotEndResistance = 4095 - hotEndAverage;
+		//hotEndResistance *= 4700 / hotEndAverage;
+
+		double voltage = hotEndAverage * 5.0 / 4095;
+		double hotEndResistance = 56653 * voltage / (5 - voltage);
+
+		float hotEndTemp = (4097/log(hotEndResistance/(100000 * exp(-4097/(25+273.15))))) - 273.15;
+		//hotEndTemp = log(hotEndTemp);
+		//hotEndTemp /= 3974;
+		//hotEndTemp += 1.0 / (ROOMTEMP + 273.15);
+		//hotEndTemp = 1.0 / hotEndTemp;
+		//hotEndTemp -= 273.15;
+		hotEndTempAverage += hotEndTemp;
+	}
+	hotEndTempAverage /= NUMSAMPLES;
 
 	readingSendCount++;
-	if (readingSendCount == 25)
+	if (readingSendCount == 5)
 	{
 		for (int i = 5 - 1; i >= 0; i--)
 		{
@@ -105,12 +142,12 @@ float TemperatureReader::GetEndTemp(http_client web_client, uri_builder resource
 		readingSendCount = 0;
 	}
 
-	
-	if ((tempHistory[0] + tempHistory[1] + tempHistory[2] + tempHistory[3] + tempHistory[4]) / 5 < 192 && (tempHistory[0] + tempHistory[1] + tempHistory[2] + tempHistory[3] + tempHistory[4]) / 5 > 188 && stable == false)
-	{
-		mutex.lock();
-		stable = true;
-		mutex.unlock();
-	}
+
+	//if ((tempHistory[0] + tempHistory[1] + tempHistory[2] + tempHistory[3] + tempHistory[4]) / 5 < 192 && (tempHistory[0] + tempHistory[1] + tempHistory[2] + tempHistory[3] + tempHistory[4]) / 5 > 188 && stable == false)
+	//{
+	//	mutex.lock();
+	//	stable = true;
+	//	mutex.unlock();
+	//}
 	return hotEndTempAverage;
 }
