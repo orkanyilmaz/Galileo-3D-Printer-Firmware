@@ -110,6 +110,10 @@ int microSecondsPerStep = 200;
 int startTime = 0;
 int endTime = 0;
 
+float xPosition = 0.0;
+float yPosition = 0.0;
+float zPosition = 0.0;
+
 int tuningCount = 0;
 void AutoTuneHelper(boolean start);
 void SerialSend();
