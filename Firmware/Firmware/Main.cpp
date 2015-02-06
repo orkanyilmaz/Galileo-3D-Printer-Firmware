@@ -182,7 +182,37 @@ void loop()
 	//print_mm(50, 'X');
 	//xDirection = !xDirection;
 }
+void G1(float x, float y, float z)
+{
+	float xDistance = xPosition - x;
+	float yDistance = yPosition - y;
+	float zDistance = zPosition - z;
 
+	float largestValue = xDistance;
+
+
+	int sortedValues[3] {xDistance, yDistance, zDistance};
+	for (int i = 0; i < 3; i++)
+	{
+
+	}
+
+	if (abs(largestValue) < abs(yDistance))
+	{
+		largestValue = yDistance;
+	}
+	if (abs(largestValue) < abs(zDistance))
+	{
+		largestValue = zDistance;
+	}
+
+
+
+	for (int i = 0; i < abs(largestValue); i++)
+	{
+		
+	}
+}
 void changeAutoTune()
 {
 	if (!tuning)
