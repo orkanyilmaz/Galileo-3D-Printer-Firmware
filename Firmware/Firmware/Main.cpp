@@ -19,7 +19,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-
 // Need to link with Ws2_32.lib, Mswsock.lib, and Advapi32.lib
 #pragma comment (lib, "Ws2_32.lib")
 #pragma comment (lib, "Mswsock.lib")
@@ -115,6 +114,15 @@ float yPosition = 0.0;
 float zPosition = 0.0;
 
 int tuningCount = 0;
+
+WSADATA wsa;
+SOCKET s;
+char message[1024], server_reply[2000];
+int recv_size;
+struct sockaddr_in server;
+
+
+
 void AutoTuneHelper(boolean start);
 void SerialSend();
 void changeAutoTune();
@@ -124,9 +132,21 @@ void extrude_mm(int mm, bool shouldStep);
 void controlTemp();
 void step(char axis);
 void controlTemp(void * aArg);
+std::string DownloadCommand();
 
 void setup()
 {
+	WSAStartup(MAKEWORD(2, 2), &wsa);
+	s = socket(AF_INET, SOCK_STREAM, 0);
+
+	Log("\nInitialising Winsock...");
+	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
+	{
+		Log("Failed. Error Code : %d", WSAGetLastError());
+	}
+
+	Log("Initialised.\n");
+	DownloadCommand();
 	analogReadResolution(12);
 	InitializePins();
 	try
@@ -466,21 +486,7 @@ void controlTemp(void * aArg)
 		//uri_builder resource = uri_builder(U("/Temperature/AddTemperatureTestData"));
 		//resource.append_query(U("temp"), utility::conversions::to_string_t(std::to_string(input)));
 		//resource.append_query(U("testId"), utility::conversions::to_string_t(std::to_string(temp_reader.GetTestId())));
-		WSADATA wsa;
-		SOCKET s;
-		WSAStartup(MAKEWORD(2, 2), &wsa);
-		s = socket(AF_INET, SOCK_STREAM, 0);
-		char message[1024], server_reply[2000];
-		int recv_size;
-		struct sockaddr_in server;
-
-		Log("\nInitialising Winsock...");
-		if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
-		{
-			Log("Failed. Error Code : %d", WSAGetLastError());
-		}
-
-		Log("Initialised.\n");
+		
 
 
 		while (1)
@@ -547,4 +553,49 @@ void controlTemp(void * aArg)
 		Log("Hi");
 	}
 
+}
+std::string DownloadCommand()
+{
+	strcpy(message, "GET /GCode/GetNextCommand");
+	strcat(message, " HTTP/1.1\r\nHost: studypush.me\r\nConnection: close\r\n\r\n");
+	//Create a socket
+	if ((s = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
+	{
+		Log("Could not create socket : %d", WSAGetLastError());
+	}
+	Log("Socket created.\n");
+
+	server.sin_addr.s_addr = inet_addr("191.236.192.121");
+	server.sin_family = AF_INET;
+	server.sin_port = htons(80);
+
+
+	//Connect to remote server
+	if (connect(s, (struct sockaddr *)&server, sizeof(server)) < 0)
+	{
+		Log("connect error");
+	}
+	Log("Connected");
+	if (send(s, message, strlen(message), 0) < 0)
+	{
+		Log("Send failed");
+	}
+	Log("Data Send\n");
+
+	if (recv(s, server_reply, 2000, 0) < 0)
+	{
+		Log("Download failed");
+	}
+	std::string finalCommand = std::string(server_reply);
+	std::size_t found = finalCommand.find("\r\n\r\n");
+	finalCommand.erase(0, found + strlen("\r\n\r\n"));
+	std::istringstream stream(finalCommand);
+	std::string command;
+	while (std::getline(stream, command, ' '))
+	{
+		Log("%s",command);
+	} 
+	closesocket(s);
+
+	return std::string(message);
 }
