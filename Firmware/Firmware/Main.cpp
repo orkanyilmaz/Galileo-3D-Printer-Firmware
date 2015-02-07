@@ -182,36 +182,26 @@ void loop()
 	//print_mm(50, 'X');
 	//xDirection = !xDirection;
 }
-void G1(float x, float y, float z)
+void G1(float x, float y, float z, float e, float f)
 {
-	float xDistance = xPosition - x;
-	float yDistance = yPosition - y;
-	float zDistance = zPosition - z;
-
-	float largestValue = xDistance;
-
-
-	int sortedValues[3] {xDistance, yDistance, zDistance};
-	for (int i = 0; i < 3; i++)
+	float sortedValues[4] {xPosition - x, yPosition - y, zPosition - z, e};
+	for (int i = 1; i < 4; i++)
 	{
-
-	}
-
-	if (abs(largestValue) < abs(yDistance))
-	{
-		largestValue = yDistance;
-	}
-	if (abs(largestValue) < abs(zDistance))
-	{
-		largestValue = zDistance;
+		float valueToCompare = abs(sortedValues[i]);
+		int j = i;
+		while (j > 0 && abs(sortedValues[j - 1]) > valueToCompare)
+		{
+			sortedValues[j] = sortedValues[j - 1];
+			j = j - 1;
+		}
+		sortedValues[j] = valueToCompare;
 	}
 
 
-
-	for (int i = 0; i < abs(largestValue); i++)
-	{
-		
-	}
+	//for (int i = 0; i < abs(largestValue); i++)
+	//{
+	//	
+	//}
 }
 void changeAutoTune()
 {
@@ -516,7 +506,7 @@ void controlTemp(void * aArg)
 		//uri_builder resource = uri_builder(U("/Temperature/AddTemperatureTestData"));
 		//resource.append_query(U("temp"), utility::conversions::to_string_t(std::to_string(input)));
 		//resource.append_query(U("testId"), utility::conversions::to_string_t(std::to_string(temp_reader.GetTestId())));
-		
+
 
 
 		while (1)
@@ -617,14 +607,42 @@ std::string DownloadCommand()
 		Log("Download failed");
 	}
 	std::string finalCommand = std::string(server_reply);
+
 	std::size_t found = finalCommand.find("\r\n\r\n");
 	finalCommand.erase(0, found + strlen("\r\n\r\n"));
-	std::istringstream stream(finalCommand);
-	std::string command;
-	while (std::getline(stream, command, ' '))
+	if (finalCommand != "The Queue is Empty")
 	{
-		Log("%s",command);
-	} 
+		std::istringstream stream(finalCommand);
+		std::string command;
+		std::getline(stream, command, ' ');
+		if (command == "G1")
+		{
+			float x= 0, y = 0, z = 0, e = 0, f = 0;
+			while (std::getline(stream, command, ' '))
+			{
+				switch (command[0])
+				{
+				case 'X':
+					x = atof(command.substr(1).c_str());
+					break;
+				case 'Y':
+					y = atof(command.substr(1).c_str());
+					break;
+				case 'Z':
+					z = atof(command.substr(1).c_str());
+					break;
+				case 'E':
+					e = atof(command.substr(1).c_str());
+					break;
+				case 'F':
+					f = atof(command.substr(1).c_str());
+					break;
+				}
+
+			}
+			G1(x, y, z, e, f);
+		}
+	}
 	closesocket(s);
 
 	return std::string(message);
