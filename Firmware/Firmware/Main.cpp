@@ -185,7 +185,7 @@ void loop()
 void G1(std::map<char, float> distances)
 {
 	char parameterList[5] {'X', 'Y', 'Z', 'E', 'F'};
-	for (int i = 1; i < 4; i++)
+	/*for (int i = 1; i < 4; i++)
 	{
 		float valueToCompare = abs(distances[parameterList[i]]);
 		int j = i;
@@ -196,12 +196,28 @@ void G1(std::map<char, float> distances)
 		}
 		distances[parameterList[j]] = valueToCompare;
 	}
+	distances.*/
+	std::sort(distances.begin(), distances.end(), distanceComparison);
 
+	for (float i = 0; i < distances[0]; i++)
+	{
+		if (abs(distances[0]) - i > 1)
+		{
 
+		}
+		else
+		{
+			
+		}
+	}
 	//for (int i = 0; i < abs(largestValue); i++)
 	//{
 	//	
 	//}
+}
+void distanceComparison(float i, float j)
+{
+	return (abs(i) < abs(j));
 }
 void changeAutoTune()
 {
