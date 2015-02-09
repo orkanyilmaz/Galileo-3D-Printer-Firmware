@@ -182,19 +182,19 @@ void loop()
 	//print_mm(50, 'X');
 	//xDirection = !xDirection;
 }
-void G1(float x, float y, float z, float e, float f)
+void G1(std::map<char, float> distances)
 {
-	float sortedValues[4] {xPosition - x, yPosition - y, zPosition - z, e};
+	char parameterList[5] {'X', 'Y', 'Z', 'E', 'F'};
 	for (int i = 1; i < 4; i++)
 	{
-		float valueToCompare = abs(sortedValues[i]);
+		float valueToCompare = abs(distances[parameterList[i]]);
 		int j = i;
-		while (j > 0 && abs(sortedValues[j - 1]) > valueToCompare)
+		while (j > 0 && abs(distances[parameterList[j - 1]]) > valueToCompare)
 		{
-			sortedValues[j] = sortedValues[j - 1];
+			distances[parameterList[j]] = distances[parameterList[j - 1]];
 			j = j - 1;
 		}
-		sortedValues[j] = valueToCompare;
+		distances[parameterList[j]] = valueToCompare;
 	}
 
 
@@ -618,29 +618,13 @@ std::string DownloadCommand()
 		if (command == "G1")
 		{
 			float x= 0, y = 0, z = 0, e = 0, f = 0;
+			std::map<char, float> distances;
 			while (std::getline(stream, command, ' '))
 			{
-				switch (command[0])
-				{
-				case 'X':
-					x = atof(command.substr(1).c_str());
-					break;
-				case 'Y':
-					y = atof(command.substr(1).c_str());
-					break;
-				case 'Z':
-					z = atof(command.substr(1).c_str());
-					break;
-				case 'E':
-					e = atof(command.substr(1).c_str());
-					break;
-				case 'F':
-					f = atof(command.substr(1).c_str());
-					break;
-				}
-
+				distances[command[0]] = atof(command.substr(1).c_str());
+				
 			}
-			G1(x, y, z, e, f);
+			G1(distances);
 		}
 	}
 	closesocket(s);
