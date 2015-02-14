@@ -149,6 +149,8 @@ void setup()
 	DownloadCommand();
 	analogReadResolution(12);
 	InitializePins();
+
+	attachInterrupt
 	try
 	{
 
@@ -203,7 +205,7 @@ void G1(std::map<char, float> distances)
 	{
 		if (abs(distances[0]) - i > 1)
 		{
-
+			
 		}
 		else
 		{
