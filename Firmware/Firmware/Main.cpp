@@ -121,6 +121,7 @@ char message[1024], server_reply[2000];
 int recv_size;
 struct sockaddr_in server;
 
+int movementBuffer[100] = { 0 };
 
 
 void AutoTuneHelper(boolean start);
@@ -132,6 +133,7 @@ void extrude_mm(int mm, bool shouldStep);
 void controlTemp();
 void step(char axis);
 void controlTemp(void * aArg);
+void executeCommand();
 std::string DownloadCommand();
 
 void setup()
@@ -144,7 +146,7 @@ void setup()
 	{
 		Log("Failed. Error Code : %d", WSAGetLastError());
 	}
-
+	attachInterrupt(1, executeCommand, CHANGE);
 	Log("Initialised.\n");
 	DownloadCommand();
 	analogReadResolution(12);
@@ -266,7 +268,13 @@ void changeAutoTune()
 		AutoTuneHelper(false);
 	}
 }
-
+void executeCommand()
+{
+	if (movementBuffer[0] == 0)
+	{
+		Log("No commands to process\n");
+	}
+}
 void AutoTuneHelper(boolean start)
 {
 	if (start)
@@ -661,14 +669,14 @@ std::string DownloadCommand()
 		std::getline(stream, command, ' ');
 		if (command == "G1")
 		{
-			float x= 0, y = 0, z = 0, e = 0, f = 0;
-			std::map<char, float> distances;
+			/*float x= 0, y = 0, z = 0, e = 0, f = 0;
+			float distances[5]
 			while (std::getline(stream, command, ' '))
 			{
 				distances[command[0]] = atof(command.substr(1).c_str());
 				
 			}
-			G1(distances);
+			G1(distances);*/
 		}
 	}
 	closesocket(s);

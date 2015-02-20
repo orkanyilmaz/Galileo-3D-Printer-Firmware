@@ -1,58 +1,12 @@
-﻿Build started 2/10/2015 4:15:31 PM.
-     1>Project "C:\Users\peyton\Documents\GitHub\Galileo-3D-Printer-Firmware\Firmware\Firmware\Firmware.vcxproj" on node 2 (Build target(s)).
-     1>ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I"C:\Users\peyton\Documents\GitHub\Galileo-3D-Printer-Firmware\Firmware\packages\cpprestsdk.2.3.0\build\native\include\\" /I"C:\Users\peyton\Documents\GitHub\Galileo-3D-Printer-Firmware\Firmware\packages\openssl.1.0.1.25\build\native\../..//build/native/include/v120\Win32\Debug\dynamic" /I"C:\Users\peyton\Documents\GitHub\Galileo-3D-Printer-Firmware\Firmware\packages\openssl.1.0.1.25\build\native\../..//build/native/include/" /I"C:\Users\peyton\Documents\GitHub\Galileo-3D-Printer-Firmware\Firmware\packages\zlib.1.2.8.7\build\native\../..//build/native/include/" /I"C:\Users\peyton\Documents\GitHub\Galileo-3D-Printer-Firmware\Firmware\packages\Microsoft.IoT.NativeWiring.1.0.0\build\native\\include\avr" /I"C:\Users\peyton\Documents\GitHub\Galileo-3D-Printer-Firmware\Firmware\packages\Microsoft.IoT.NativeWiring.1.0.0\build\native\\include" /I"C:\Users\peyton\Documents\GitHub\Galileo-3D-Printer-Firmware\Firmware\packages\Microsoft.IoT.SDKFromArduino.1.0.0\build\native\\include" /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D HAS_CPPRESTSDK /D ZLIB_DLL /D HAS_ZLIB /D ARDUINO=100 /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /arch:IA32 /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt /d2nolock "C:\Users\peyton\Documents\GitHub\Galileo-3D-Printer-Firmware\Firmware\packages\Microsoft.IoT.NativeWiring.1.0.0\build\native\\Source\CY8C9540ASupport.cpp" "C:\Users\peyton\Documents\GitHub\Galileo-3D-Printer-Firmware\Firmware\packages\Microsoft.IoT.NativeWiring.1.0.0\build\native\\Source\DmapSupport.cpp" "C:\Users\peyton\Documents\GitHub\Galileo-3D-Printer-Firmware\Firmware\packages\Microsoft.IoT.NativeWiring.1.0.0\build\native\\Source\GalileoPins.cpp" "C:\Users\peyton\Documents\GitHub\Galileo-3D-Printer-Firmware\Firmware\packages\Microsoft.IoT.NativeWiring.1.0.0\build\native\\Source\GpioController.cpp" "C:\Users\peyton\Documents\GitHub\Galileo-3D-Printer-Firmware\Firmware\packages\Microsoft.IoT.NativeWiring.1.0.0\build\native\\Source\HardwareSerial.cpp" "C:\Users\peyton\Documents\GitHub\Galileo-3D-Printer-Firmware\Firmware\packages\Microsoft.IoT.NativeWiring.1.0.0\build\native\\Source\I2cController.cpp" "C:\Users\peyton\Documents\GitHub\Galileo-3D-Printer-Firmware\Firmware\packages\Microsoft.IoT.NativeWiring.1.0.0\build\native\\Source\NetworkSerial.cpp" "C:\Users\peyton\Documents\GitHub\Galileo-3D-Printer-Firmware\Firmware\packages\Microsoft.IoT.NativeWiring.1.0.0\build\native\\Source\PCA9685Support.cpp" "C:\Users\peyton\Documents\GitHub\Galileo-3D-Printer-Firmware\Firmware\packages\Microsoft.IoT.NativeWiring.1.0.0\build\native\\Source\PCAL9535ASupport.cpp" "C:\Users\peyton\Documents\GitHub\Galileo-3D-Printer-Firmware\Firmware\packages\Microsoft.IoT.NativeWiring.1.0.0\build\native\\Source\PulseIn.cpp" "C:\Users\peyton\Documents\GitHub\Galileo-3D-Printer-Firmware\Firmware\packages\Microsoft.IoT.NativeWiring.1.0.0\build\native\\Source\Servo.cpp" "C:\Users\peyton\Documents\GitHub\Galileo-3D-Printer-Firmware\Firmware\packages\Microsoft.IoT.NativeWiring.1.0.0\build\native\\Source\Spi.cpp" "C:\Users\peyton\Documents\GitHub\Galileo-3D-Printer-Firmware\Firmware\packages\Microsoft.IoT.NativeWiring.1.0.0\build\native\\Source\SpiController.cpp" "C:\Users\peyton\Documents\GitHub\Galileo-3D-Printer-Firmware\Firmware\packages\Microsoft.IoT.NativeWiring.1.0.0\build\native\\Source\WInterrupt.cpp" "C:\Users\peyton\Documents\GitHub\Galileo-3D-Printer-Firmware\Firmware\packages\Microsoft.IoT.NativeWiring.1.0.0\build\native\\Source\arduino.cpp" "C:\Users\peyton\Documents\GitHub\Galileo-3D-Printer-Firmware\Firmware\packages\Microsoft.IoT.NativeWiring.1.0.0\build\native\\Source\eeprom.cpp" "C:\Users\peyton\Documents\GitHub\Galileo-3D-Printer-Firmware\Firmware\packages\Microsoft.IoT.SDKFromArduino.1.0.0\build\native\\Source\LiquidCrystal.cpp" "C:\Users\peyton\Documents\GitHub\Galileo-3D-Printer-Firmware\Firmware\packages\Microsoft.IoT.SDKFromArduino.1.0.0\build\native\\Source\Print.cpp" "C:\Users\peyton\Documents\GitHub\Galileo-3D-Printer-Firmware\Firmware\packages\Microsoft.IoT.SDKFromArduino.1.0.0\build\native\\Source\Stepper.cpp" "C:\Users\peyton\Documents\GitHub\Galileo-3D-Printer-Firmware\Firmware\packages\Microsoft.IoT.SDKFromArduino.1.0.0\build\native\\Source\Stream.cpp" "C:\Users\peyton\Documents\GitHub\Galileo-3D-Printer-Firmware\Firmware\packages\Microsoft.IoT.SDKFromArduino.1.0.0\build\native\\Source\WString.cpp" Main.cpp PID_AutoTune_v0.cpp PID_v1.cpp TemperatureReader.cpp ThermistorLookupTable.cpp stdafx.cpp tinythread.cpp
-         tinythread.cpp
-         stdafx.cpp
-         ThermistorLookupTable.cpp
-         TemperatureReader.cpp
-     1>c:\users\peyton\documents\github\galileo-3d-printer-firmware\firmware\firmware\temperaturereader.cpp(7): warning C4244: '=' : conversion from 'int' to 'float', possible loss of data
-     1>c:\users\peyton\documents\github\galileo-3d-printer-firmware\firmware\firmware\temperaturereader.cpp(24): warning C4101: 'e' : unreferenced local variable
-     1>c:\users\peyton\documents\github\galileo-3d-printer-firmware\firmware\firmware\temperaturereader.cpp(46): warning C4101: 'e' : unreferenced local variable
-     1>c:\users\peyton\documents\github\galileo-3d-printer-firmware\firmware\firmware\temperaturereader.cpp(62): warning C4244: 'return' : conversion from 'double' to 'float', possible loss of data
-     1>c:\users\peyton\documents\github\galileo-3d-printer-firmware\firmware\firmware\temperaturereader.cpp(127): warning C4244: 'argument' : conversion from 'float' to 'int', possible loss of data
-     1>c:\users\peyton\documents\github\galileo-3d-printer-firmware\firmware\firmware\temperaturereader.cpp(130): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
-     1>c:\users\peyton\documents\github\galileo-3d-printer-firmware\firmware\firmware\temperaturereader.cpp(162): warning C4244: 'return' : conversion from 'double' to 'float', possible loss of data
-         PID_v1.cpp
-         PID_AutoTune_v0.cpp
-     1>c:\users\peyton\documents\github\galileo-3d-printer-firmware\firmware\firmware\pid_autotune_v0.cpp(41): warning C4018: '<' : signed/unsigned mismatch
-         Main.cpp
-     1>c:\users\peyton\documents\github\galileo-3d-printer-firmware\firmware\firmware\pid_autotune_v0.h(3): warning C4005: 'LIBRARY_VERSION' : macro redefinition
-                 c:\users\peyton\documents\github\galileo-3d-printer-firmware\firmware\firmware\pid_v1.h(3) : see previous definition of 'LIBRARY_VERSION'
-     1>c:\users\peyton\documents\github\galileo-3d-printer-firmware\firmware\firmware\main.cpp(156): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
-     1>c:\users\peyton\documents\github\galileo-3d-printer-firmware\firmware\firmware\main.cpp(170): warning C4101: 'e' : unreferenced local variable
-     1>c:\users\peyton\documents\github\galileo-3d-printer-firmware\firmware\firmware\main.cpp(200): error C2065: 'distanceComparison' : undeclared identifier
-     1>c:\users\peyton\documents\github\galileo-3d-printer-firmware\firmware\firmware\main.cpp(206): error C2065: 'TCCR0A' : undeclared identifier
-     1>c:\users\peyton\documents\github\galileo-3d-printer-firmware\firmware\firmware\main.cpp(220): error C2562: 'distanceComparison' : 'void' function returning a value
-                 c:\users\peyton\documents\github\galileo-3d-printer-firmware\firmware\firmware\main.cpp(218) : see declaration of 'distanceComparison'
-     1>c:\users\peyton\documents\github\galileo-3d-printer-firmware\firmware\firmware\main.cpp(581): warning C4244: 'argument' : conversion from 'double' to 'unsigned int', possible loss of data
-     1>c:\users\peyton\documents\github\galileo-3d-printer-firmware\firmware\firmware\main.cpp(640): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-         WString.cpp
-         Stream.cpp
-         Stepper.cpp
-         Print.cpp
-         LiquidCrystal.cpp
-         eeprom.cpp
-         arduino.cpp
-         WInterrupt.cpp
-         SpiController.cpp
-         Spi.cpp
-         Servo.cpp
-         PulseIn.cpp
-         PCAL9535ASupport.cpp
-         Generating Code...
-         Compiling...
-         PCA9685Support.cpp
-         NetworkSerial.cpp
-         I2cController.cpp
-         HardwareSerial.cpp
-         GpioController.cpp
-         GalileoPins.cpp
-         DmapSupport.cpp
-         CY8C9540ASupport.cpp
-         Generating Code...
-     1>Done Building Project "C:\Users\peyton\Documents\GitHub\Galileo-3D-Printer-Firmware\Firmware\Firmware\Firmware.vcxproj" (Build target(s)) -- FAILED.
-
-Build FAILED.
-
-Time Elapsed 00:01:37.06
+﻿  Main.cpp
+c:\users\peyton\documents\github\galileo-3d-printer-firmware\firmware\firmware\pid_autotune_v0.h(3): warning C4005: 'LIBRARY_VERSION' : macro redefinition
+          c:\users\peyton\documents\github\galileo-3d-printer-firmware\firmware\firmware\pid_v1.h(3) : see previous definition of 'LIBRARY_VERSION'
+c:\users\peyton\documents\github\galileo-3d-printer-firmware\firmware\firmware\main.cpp(160): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
+c:\users\peyton\documents\github\galileo-3d-printer-firmware\firmware\firmware\main.cpp(174): warning C4101: 'e' : unreferenced local variable
+c:\users\peyton\documents\github\galileo-3d-printer-firmware\firmware\firmware\main.cpp(207): warning C4244: 'initializing' : conversion from 'int' to 'float', possible loss of data
+c:\users\peyton\documents\github\galileo-3d-printer-firmware\firmware\firmware\main.cpp(215): warning C4244: '=' : conversion from 'float' to 'int', possible loss of data
+c:\users\peyton\documents\github\galileo-3d-printer-firmware\firmware\firmware\main.cpp(217): warning C4244: 'initializing' : conversion from 'int' to 'float', possible loss of data
+c:\users\peyton\documents\github\galileo-3d-printer-firmware\firmware\firmware\main.cpp(225): warning C4244: '+=' : conversion from 'float' to 'int', possible loss of data
+c:\users\peyton\documents\github\galileo-3d-printer-firmware\firmware\firmware\main.cpp(617): warning C4244: 'argument' : conversion from 'double' to 'unsigned int', possible loss of data
+c:\users\peyton\documents\github\galileo-3d-printer-firmware\firmware\firmware\main.cpp(623): warning C4101: 'e' : unreferenced local variable
+  Firmware.vcxproj -> C:\Users\peyton\Documents\GitHub\Galileo-3D-Printer-Firmware\Firmware\Debug\Firmware.exe

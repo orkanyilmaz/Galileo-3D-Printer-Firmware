@@ -6,7 +6,7 @@
     <RemoteDebuggerWorkingDirectory>c:\test\</RemoteDebuggerWorkingDirectory>
     <DeploymentDirectory>c:\test\</DeploymentDirectory>
     <RemoteDebuggerDeployDebugCppRuntime>true</RemoteDebuggerDeployDebugCppRuntime>
-    <RemoteDebuggerServerName>192.168.137.41</RemoteDebuggerServerName>
+    <RemoteDebuggerServerName>169.254.67.2</RemoteDebuggerServerName>
     <RemoteDebuggerDebuggerType>NativeOnly</RemoteDebuggerDebuggerType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
