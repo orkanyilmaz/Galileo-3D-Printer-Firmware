@@ -150,7 +150,7 @@ void setup()
 	analogReadResolution(12);
 	InitializePins();
 
-	attachInterrupt
+
 	try
 	{
 
@@ -184,25 +184,55 @@ void loop()
 	//print_mm(50, 'X');
 	//xDirection = !xDirection;
 }
-void G1(std::map<char, float> distances)
+void G1(int distances[5])
 {
 	char parameterList[5] {'X', 'Y', 'Z', 'E', 'F'};
-	/*for (int i = 1; i < 4; i++)
+	//for (int i = 1; i < 4; i++)
+	//{
+	//	float valueToCompare = abs(distances[parameterList[i]]);
+	//	int j = i;
+	//	while (j > 0 && abs(distances[parameterList[j - 1]]) > valueToCompare)
+	//	{
+	//		distances[parameterList[j]] = distances[parameterList[j - 1]];
+	//		
+	//		j = j - 1;
+	//	}
+	//	distances[parameterList[j]] = valueToCompare;
+	//}
+	/*distances.*/
+	for (int i = 1; i <= 4; i++)
 	{
-		float valueToCompare = abs(distances[parameterList[i]]);
+		float valueToCompare = abs(distances[i]);
 		int j = i;
-		while (j > 0 && abs(distances[parameterList[j - 1]]) > valueToCompare)
+		while (j > 0 && abs(distances[j - 1]) > valueToCompare)
 		{
-			distances[parameterList[j]] = distances[parameterList[j - 1]];
-			j = j - 1;
+			distances[j] = distances[j - 1];
+			parameterList[j] = parameterList[j - 1];
+			j--;
 		}
-		distances[parameterList[j]] = valueToCompare;
+		distances[j] = valueToCompare;
 	}
-	distances.*/
-	std::sort(distances.begin(), distances.end(), distanceComparison);
-
+	float distanceRatios[5] {distances[0], distances[1]/distances[0], distances[2]/distances[0], distances[3]/distances[0], distances[4]/distances[0]};
+	int counters[5] {0, 0, 0, 0, 0};
+	for (int i = 0; i < distances[0]; i++)
+	{
+		for (int step = 0; step < stepsPerMM; step++)
+		{
+			for (int j = 0; j < 5; j++)
+			{
+				counters[j] += distanceRatios[j];
+				if (counters[j] >= 1)
+				{
+					//move();
+					counters[j] -= 1;
+				}
+			}
+			
+		}
+	}
 	for (float i = 0; i < distances[0]; i++)
 	{
+		
 		if (abs(distances[0]) - i > 1)
 		{
 			
@@ -216,10 +246,6 @@ void G1(std::map<char, float> distances)
 	//{
 	//	
 	//}
-}
-void distanceComparison(float i, float j)
-{
-	return (abs(i) < abs(j));
 }
 void changeAutoTune()
 {
