@@ -4,6 +4,9 @@
 #include <cpprest/filestream.h>
 #include "tinythread.h"
 #include "fast_mutex.h"
+#include <iostream>
+#include <fstream>
+
 
 #include "PID_v1.h"
 #include "PID_AutoTune_v0.h"
@@ -42,11 +45,11 @@ using namespace tthread;
 
 #define SPI_LATCH 3
 
-#define Z_AXIS_DIR 16
-#define Z_AXIS_STEP 32
+#define Z_AXIS_DIR 4
+#define Z_AXIS_STEP 8
 
-#define Y_AXIS_DIR 4
-#define Y_AXIS_STEP 8
+#define Y_AXIS_DIR 16
+#define Y_AXIS_STEP 32
 
 #define X_AXIS_DIR 1
 #define X_AXIS_STEP 2
@@ -99,8 +102,8 @@ int readingCount = 0;
 bool stable = false;
 
 bool xDirection = true; //False = Left, True = Right
-bool yDirection = false; //False = Up, True = Down
-bool zDirection = true; //False = Forwards, True = Backwards
+bool zDirection = false; //False = Up, True = Down
+bool yDirection = true; //False = Forwards, True = Backwards
 bool eDirection = false; //False = Extrude, True = Retract
 
 int stepsPerMM = 7 * 16;
@@ -121,7 +124,10 @@ char message[1024], server_reply[2000];
 int recv_size;
 struct sockaddr_in server;
 
-int movementBuffer[100] = { 0 };
+ifstream_t gCodeFile;
+std::stringstream buffer;
+
+std::vector<int> movementBuffer;
 
 
 void AutoTuneHelper(boolean start);
@@ -134,50 +140,66 @@ void controlTemp();
 void step(char axis);
 void controlTemp(void * aArg);
 void executeCommand();
+void ParseCommand(std::string finalCommand);
 std::string DownloadCommand();
+
+int previousMili = 0;
 
 void setup()
 {
-	WSAStartup(MAKEWORD(2, 2), &wsa);
-	s = socket(AF_INET, SOCK_STREAM, 0);
+	std::ifstream t("gCodePrint.gcode");
+	buffer << t.rdbuf();
+	char line[256];
 
-	Log("\nInitialising Winsock...");
-	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
+	while (!buffer.eof())
 	{
-		Log("Failed. Error Code : %d", WSAGetLastError());
+		buffer.getline(line, 256);
+		ParseCommand(line);
 	}
-	attachInterrupt(1, executeCommand, CHANGE);
-	Log("Initialised.\n");
-	DownloadCommand();
+	//ParseCommand(line);
+
+	
+
+	//WSAStartup(MAKEWORD(2, 2), &wsa);
+	//s = socket(AF_INET, SOCK_STREAM, 0);
+
+	//Log("\nInitialising Winsock...");
+	//if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
+	//{
+	//	Log("Failed. Error Code : %d", WSAGetLastError());
+	//}
+
 	analogReadResolution(12);
 	InitializePins();
 
+	//attachInterrupt(1, executeCommand, CHANGE);
+	//Log("Initialised.\n");
+	//DownloadCommand();
+	//try
+	//{
 
-	try
-	{
 
+	//	temp_reader.BeginNewRecording(web_client, uri_builder(U("/Temperature/AddTemperatureTest")), kp, ki, kd);
+	//	aTune.SetControlType(1);
+	//	heaterPid.SetMode(AUTOMATIC);
+	//	heaterPid.SetOutputLimits(0, 255);
 
-		temp_reader.BeginNewRecording(web_client, uri_builder(U("/Temperature/AddTemperatureTest")), kp, ki, kd);
-		aTune.SetControlType(1);
-		heaterPid.SetMode(AUTOMATIC);
-		heaterPid.SetOutputLimits(0, 255);
+	//	if (tuning)
+	//	{
+	//		tuning = false;
+	//		changeAutoTune();
+	//		tuning = true;
+	//	}
+	//	serialTime = 0;
 
-		if (tuning)
-		{
-			tuning = false;
-			changeAutoTune();
-			tuning = true;
-		}
-		serialTime = 0;
+	//}
+	//catch (std::exception& e)
+	//{
 
-	}
-	catch (std::exception& e)
-	{
+	//}
 
-	}
-	thread t(controlTemp, 0);
-	t.detach();
-
+	//thread t = thread(controlTemp,0);
+	//t.detach();
 }
 void loop()
 {
@@ -186,68 +208,87 @@ void loop()
 	//print_mm(50, 'X');
 	//xDirection = !xDirection;
 }
-void G1(int distances[5])
+void G1(float distances[], char distanceLabels[], int count)
 {
-	char parameterList[5] {'X', 'Y', 'Z', 'E', 'F'};
-	//for (int i = 1; i < 4; i++)
-	//{
-	//	float valueToCompare = abs(distances[parameterList[i]]);
-	//	int j = i;
-	//	while (j > 0 && abs(distances[parameterList[j - 1]]) > valueToCompare)
-	//	{
-	//		distances[parameterList[j]] = distances[parameterList[j - 1]];
-	//		
-	//		j = j - 1;
-	//	}
-	//	distances[parameterList[j]] = valueToCompare;
-	//}
-	/*distances.*/
-	for (int i = 1; i <= 4; i++)
+
+	for (int i = 1; i < count; i++)
 	{
-		float valueToCompare = abs(distances[i]);
+		char distanceValue = distanceLabels[i];
+		float rawValue = distances[i];
+		float valueToCompare = abs(rawValue);
 		int j = i;
-		while (j > 0 && abs(distances[j - 1]) > valueToCompare)
+		while (j > 0 && abs(distances[j - 1]) < valueToCompare)
 		{
 			distances[j] = distances[j - 1];
-			parameterList[j] = parameterList[j - 1];
+			distanceLabels[j] = distanceLabels[j - 1];
 			j--;
 		}
-		distances[j] = valueToCompare;
+		distances[j] = rawValue;
+		distanceLabels[j] = distanceValue;
 	}
-	float distanceRatios[5] {distances[0], distances[1]/distances[0], distances[2]/distances[0], distances[3]/distances[0], distances[4]/distances[0]};
-	int counters[5] {0, 0, 0, 0, 0};
+
+	float* distanceRatios = (float*)malloc(sizeof(float) * count);
+	float* counters = (float*)malloc(sizeof(float) * count);
+
+	for (int i = 0; i < count; i++)
+	{
+		distanceRatios[i] = distances[i] / distances[0];
+		counters[i] = 0;
+	}
+
+	int stepSequenceOn = 0;
+	int stepSequenceOff = 0;
+
 	for (int i = 0; i < distances[0]; i++)
 	{
+		stepSequenceOn = 0;
+		stepSequenceOff = 0;
+		for (int j = 0; j < count; j++)
+		{
+			counters[j] += distanceRatios[j];
+			if (counters[j] >= 1)
+			{
+				switch (distanceLabels[j])
+				{
+				case 'X':
+					if (distances[j] > 0)
+					{
+						stepSequenceOn += X_AXIS_DIR;
+						stepSequenceOff += X_AXIS_DIR;
+					}
+					stepSequenceOn += X_AXIS_STEP;
+					break;
+				case 'Y':
+					if (distances[j] < 0)
+					{
+						stepSequenceOn += Y_AXIS_DIR;
+						stepSequenceOff += Y_AXIS_DIR;
+					}
+					stepSequenceOn += Y_AXIS_STEP;
+					break;
+				case 'Z':
+					if (distances[j] < 0)
+					{
+						stepSequenceOn += Z_AXIS_DIR;
+						stepSequenceOff += Z_AXIS_DIR;
+					}
+					stepSequenceOn += Z_AXIS_STEP;
+					break;
+
+				}
+				counters[j] -= 1;
+			}
+		}
 		for (int step = 0; step < stepsPerMM; step++)
 		{
-			for (int j = 0; j < 5; j++)
-			{
-				counters[j] += distanceRatios[j];
-				if (counters[j] >= 1)
-				{
-					//move();
-					counters[j] -= 1;
-				}
-			}
-			
+			int startTime = micros();
+			//
+			//movementBuffer.push_back(stepSequenceOn);
+			//movementBuffer.push_back(stepSequenceOff);
+			Log(L"Time: %i\n", micros() - startTime);
 		}
 	}
-	for (float i = 0; i < distances[0]; i++)
-	{
-		
-		if (abs(distances[0]) - i > 1)
-		{
-			
-		}
-		else
-		{
-			
-		}
-	}
-	//for (int i = 0; i < abs(largestValue); i++)
-	//{
-	//	
-	//}
+
 }
 void changeAutoTune()
 {
@@ -270,10 +311,21 @@ void changeAutoTune()
 }
 void executeCommand()
 {
-	if (movementBuffer[0] == 0)
-	{
-		Log("No commands to process\n");
-	}
+	int currentMicro = micros();
+	Log(L"Time: %i\n", currentMicro - previousMili);
+	previousMili = currentMicro;
+	//if (movementBuffer.size() > 1)
+	//{
+	//	//Log("Movement String: %i, Rest String: %i\n", movementBuffer[0], movementBuffer[1]);
+	//	movementBuffer.erase(movementBuffer.begin());
+	//	movementBuffer.erase(movementBuffer.begin());
+
+	//}
+	//else
+	//{
+	//	Log("No commands to process\n");
+	//}
+
 }
 void AutoTuneHelper(boolean start)
 {
@@ -576,7 +628,7 @@ void controlTemp(void * aArg)
 				{
 					Log("Could not create socket : %d", WSAGetLastError());
 				}
-				Log("Socket created.\n");
+				//Log("Socket created.\n");
 
 
 				server.sin_addr.s_addr = inet_addr("191.236.192.121");
@@ -588,14 +640,14 @@ void controlTemp(void * aArg)
 				{
 					Log("connect error");
 				}
-				Log("Connected");
+				//Log("Connected");
 
 				//Send some data
 				if (send(s, message, strlen(message), 0) < 0)
 				{
 					Log("Send failed");
 				}
-				Log("Data Send\n");
+				//Log("Data Send\n");
 				closesocket(s);
 				readingCount = 0;
 			}
@@ -617,7 +669,7 @@ void controlTemp(void * aArg)
 			analogWrite(HOT_END_SWITCH, output);
 			analogWrite(HOT_BED_SWITCH, 0);
 			analogWrite(FAN_SWITCH, 0);
-			delay(1000);
+			//delay(1000);
 		}
 	}
 	catch (std::exception& e)
@@ -669,17 +721,49 @@ std::string DownloadCommand()
 		std::getline(stream, command, ' ');
 		if (command == "G1")
 		{
-			/*float x= 0, y = 0, z = 0, e = 0, f = 0;
-			float distances[5]
+			int count = 0;
+			float distances[5] = { 0 };
+			char distanceLabels[5];
 			while (std::getline(stream, command, ' '))
 			{
-				distances[command[0]] = atof(command.substr(1).c_str());
-				
+				distanceLabels[count] = command[0];
+				distances[count] = atof(command.substr(1).c_str());
+				count++;
 			}
-			G1(distances);*/
+			G1(distances, distanceLabels, count);
 		}
 	}
 	closesocket(s);
 
 	return std::string(message);
+}
+
+void ParseCommand(std::string finalCommand)
+{
+	if (finalCommand != "The Queue is Empty")
+	{
+		std::istringstream stream(finalCommand);
+		std::string command;
+		std::getline(stream, command, ' ');
+		if (command == "G1")
+		{
+			int count = 0;
+			float distances[5] = { 0 };
+			char distanceLabels[5];
+			while (std::getline(stream, command, ' '))
+			{
+				if (command[0] == ';')
+				{
+					break;
+				}
+				else
+				{
+					distanceLabels[count] = command[0];
+					distances[count] = atof(command.substr(1).c_str());
+					count++;
+				}
+			}
+			G1(distances, distanceLabels, count);
+		}
+	}
 }

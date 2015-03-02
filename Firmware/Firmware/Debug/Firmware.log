@@ -1,12 +1,8 @@
 ﻿  Main.cpp
 c:\users\peyton\documents\github\galileo-3d-printer-firmware\firmware\firmware\pid_autotune_v0.h(3): warning C4005: 'LIBRARY_VERSION' : macro redefinition
           c:\users\peyton\documents\github\galileo-3d-printer-firmware\firmware\firmware\pid_v1.h(3) : see previous definition of 'LIBRARY_VERSION'
-c:\users\peyton\documents\github\galileo-3d-printer-firmware\firmware\firmware\main.cpp(160): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
-c:\users\peyton\documents\github\galileo-3d-printer-firmware\firmware\firmware\main.cpp(174): warning C4101: 'e' : unreferenced local variable
-c:\users\peyton\documents\github\galileo-3d-printer-firmware\firmware\firmware\main.cpp(207): warning C4244: 'initializing' : conversion from 'int' to 'float', possible loss of data
-c:\users\peyton\documents\github\galileo-3d-printer-firmware\firmware\firmware\main.cpp(215): warning C4244: '=' : conversion from 'float' to 'int', possible loss of data
-c:\users\peyton\documents\github\galileo-3d-printer-firmware\firmware\firmware\main.cpp(217): warning C4244: 'initializing' : conversion from 'int' to 'float', possible loss of data
-c:\users\peyton\documents\github\galileo-3d-printer-firmware\firmware\firmware\main.cpp(225): warning C4244: '+=' : conversion from 'float' to 'int', possible loss of data
-c:\users\peyton\documents\github\galileo-3d-printer-firmware\firmware\firmware\main.cpp(617): warning C4244: 'argument' : conversion from 'double' to 'unsigned int', possible loss of data
-c:\users\peyton\documents\github\galileo-3d-printer-firmware\firmware\firmware\main.cpp(623): warning C4101: 'e' : unreferenced local variable
+c:\users\peyton\documents\github\galileo-3d-printer-firmware\firmware\firmware\main.cpp(669): warning C4244: 'argument' : conversion from 'double' to 'unsigned int', possible loss of data
+c:\users\peyton\documents\github\galileo-3d-printer-firmware\firmware\firmware\main.cpp(675): warning C4101: 'e' : unreferenced local variable
+c:\users\peyton\documents\github\galileo-3d-printer-firmware\firmware\firmware\main.cpp(730): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
+c:\users\peyton\documents\github\galileo-3d-printer-firmware\firmware\firmware\main.cpp(762): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
   Firmware.vcxproj -> C:\Users\peyton\Documents\GitHub\Galileo-3D-Printer-Firmware\Firmware\Debug\Firmware.exe
