@@ -279,13 +279,13 @@ void G1(float distances[], char distanceLabels[], int count)
 				counters[j] -= 1;
 			}
 		}
-		for (int step = 0; step < stepsPerMM; step++)
+		for (int step = 0; step < 2; step++)
 		{
 			int startTime = micros();
 			//
 			//movementBuffer.push_back(stepSequenceOn);
 			//movementBuffer.push_back(stepSequenceOff);
-			Log(L"Time: %i\n", micros() - startTime);
+			printf("Time: %i, Moevement: %i, MM: %i\n", micros() - startTime, stepSequenceOn,i);
 		}
 	}
 
