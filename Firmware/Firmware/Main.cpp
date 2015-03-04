@@ -284,7 +284,6 @@ void G1(float distances[], char distanceLabels[], int count)
 				break;
 			}
 		}
-		movementBuffer[i - 1] = stepSequence;
 
 	}
 	free(distanceRatios);
