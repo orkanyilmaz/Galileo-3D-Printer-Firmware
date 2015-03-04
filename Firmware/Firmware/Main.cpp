@@ -60,6 +60,9 @@ using namespace tthread;
 #define GPIO_FAST_IO3 27
 #define GPIO_FAST_IO2 45
 
+#define stepsPerMM 112 // 7*16
+
+
 int _tmain(int argc, _TCHAR* argv[])
 {
 	return RunArduinoSketch();
@@ -106,7 +109,6 @@ bool zDirection = false; //False = Up, True = Down
 bool yDirection = true; //False = Forwards, True = Backwards
 bool eDirection = false; //False = Extrude, True = Retract
 
-int stepsPerMM = 7 * 16;
 
 int microSecondsPerStep = 200;
 int startTime = 0;
@@ -127,7 +129,7 @@ struct sockaddr_in server;
 ifstream_t gCodeFile;
 std::stringstream buffer;
 
-std::vector<int> movementBuffer;
+short movementBuffer[stepsPerMM];
 
 
 void AutoTuneHelper(boolean start);
@@ -158,7 +160,7 @@ void setup()
 	}
 	//ParseCommand(line);
 
-	
+
 
 	//WSAStartup(MAKEWORD(2, 2), &wsa);
 	//s = socket(AF_INET, SOCK_STREAM, 0);
@@ -228,67 +230,64 @@ void G1(float distances[], char distanceLabels[], int count)
 	}
 
 	float* distanceRatios = (float*)malloc(sizeof(float) * count);
-	float* counters = (float*)malloc(sizeof(float) * count);
+	short directional = 0;
 
 	for (int i = 0; i < count; i++)
 	{
 		distanceRatios[i] = distances[i] / distances[0];
-		counters[i] = 0;
+
+		switch (distanceLabels[i])
+		{
+		case 'X':
+			if (distances[i] > 0)
+				directional += X_AXIS_DIR;
+			break;
+		case 'Y':
+			if (distances[i] < 0)
+				directional += Y_AXIS_DIR;
+			break;
+		case 'Z':
+			if (distances[i] < 0)
+				directional += Z_AXIS_DIR;
+			break;
+		case 'E':
+			if (distances[i] < 0)
+				directional += EXTRUDER_DIR;
+		}
 	}
 
-	int stepSequenceOn = 0;
-	int stepSequenceOff = 0;
 
-	for (int i = 0; i < distances[0]; i++)
+	for (int i = 1; i <= distances[0] > 1 ? (distances[0] * stepper_steps_mm) - ((distances[0] - 1) * stepper_steps_mm) : distances[0] * stepper_steps_mm; i++)
 	{
-		stepSequenceOn = 0;
-		stepSequenceOff = 0;
+		short stepSequence = directional;
 		for (int j = 0; j < count; j++)
 		{
-			counters[j] += distanceRatios[j];
-			if (counters[j] >= 1)
+			switch (distanceLabels[j])
 			{
-				switch (distanceLabels[j])
+			case 'X':
+				if ((i * distances[j]) - ((i - 1) * distances[j]) >= 1)
 				{
-				case 'X':
-					if (distances[j] > 0)
-					{
-						stepSequenceOn += X_AXIS_DIR;
-						stepSequenceOff += X_AXIS_DIR;
-					}
-					stepSequenceOn += X_AXIS_STEP;
-					break;
-				case 'Y':
-					if (distances[j] < 0)
-					{
-						stepSequenceOn += Y_AXIS_DIR;
-						stepSequenceOff += Y_AXIS_DIR;
-					}
-					stepSequenceOn += Y_AXIS_STEP;
-					break;
-				case 'Z':
-					if (distances[j] < 0)
-					{
-						stepSequenceOn += Z_AXIS_DIR;
-						stepSequenceOff += Z_AXIS_DIR;
-					}
-					stepSequenceOn += Z_AXIS_STEP;
-					break;
-
+					stepSequence += X_AXIS_STEP;
 				}
-				counters[j] -= 1;
+				break;
+			case 'Y':
+				if ((i * distances[j]) - ((i - 1) * distances[j]) >= 1)
+				{
+					stepSequence += Y_AXIS_STEP;
+				}
+				break;
+			case 'Z':
+				if ((i * distances[j]) - ((i - 1) * distances[j]) >= 1)
+				{
+					stepSequence += Z_AXIS_STEP;
+				}
+				break;
 			}
 		}
-		for (int step = 0; step < stepsPerMM; step++)
-		{
-			int startTime = micros();
-			//
-			//movementBuffer.push_back(stepSequenceOn);
-			//movementBuffer.push_back(stepSequenceOff);
-			Log(L"Time: %i\n", micros() - startTime);
-		}
-	}
+		movementBuffer[i - 1] = stepSequence;
 
+	}
+	free(distanceRatios);
 }
 void changeAutoTune()
 {
