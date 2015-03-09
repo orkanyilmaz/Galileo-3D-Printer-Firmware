@@ -60,7 +60,7 @@ using namespace tthread;
 #define GPIO_FAST_IO3 27
 #define GPIO_FAST_IO2 45
 
-#define stepsPerMM 112 // 7*16
+#define stepsPerMM 116 // 7*16
 
 
 int _tmain(int argc, _TCHAR* argv[])
@@ -84,7 +84,7 @@ TemperatureReader temp_reader(HOT_END_TEMP);
 //double input = 0, kp = .9675, ki = 0.049923, kd = 0, setpoint = 190; // 190
 //double input = 0, kp = .9675, ki = 0.01248075, kd = 0, setpoint = 190; // 190 0.049923
 //double input = 0, kp = 18.676056338028169014084507042254, ki = 2.25, kd = 1.25, setpoint = 220; // 75
-double input = 0, kp = 30, ki = 0, kd = 0, setpoint = 100;
+double input = 0, kp = 30, ki = 0, kd = 0, setpoint = 148;
 double output = 0;
 unsigned int aTuneLookBack = 30;
 
@@ -97,8 +97,8 @@ PID heaterPid(&input, &output, &setpoint, kp, ki, kd, DIRECT);
 PID_ATune aTune(&input, &output);
 
 //
-double e_steps_mm = (STEPS_REV * 1) * (GREGS_GEAR_RATIO) / (7 * 3.14159);
-double layerHeight = .6;
+double layerHeight = .35;
+double e_steps_mm = (STEPS_REV * 16) * (GREGS_GEAR_RATIO) / (7 * 3.14159) * layerHeight;
 const int stepper_steps_mm = (STEPS_REV * 1) / (2 * 20);
 
 int readingCount = 0;
@@ -110,7 +110,7 @@ bool yDirection = true; //False = Forwards, True = Backwards
 bool eDirection = false; //False = Extrude, True = Retract
 
 
-int microSecondsPerStep = 200;
+int microSecondsPerStep = 500;
 int startTime = 0;
 int endTime = 0;
 
@@ -140,24 +140,54 @@ void print_mm(int mm, char axis);
 void extrude_mm(int mm, bool shouldStep);
 void controlTemp();
 void step(char axis);
-void controlTemp(void * aArg);
+void controlTemp();
 void executeCommand();
 void ParseCommand(std::string finalCommand);
 std::string DownloadCommand();
 
 int previousMili = 0;
-
+bool passed = false;
 void setup()
 {
+	//SPI.begin();
+	analogReadResolution(12);
+	InitializePins();
+
+	heaterPid.SetMode(AUTOMATIC);
+	heaterPid.SetOutputLimits(0, 255);
+	//setpoint = 0;
+	while (input < setpoint)
+	{
+		Log("%f\n", input);
+		delay(500);
+		controlTemp();
+	}
+	passed = true;
+	while (input > setpoint)
+	{
+		Log("%f\n", input);
+		delay(500);
+		controlTemp();
+	}
 	std::ifstream t("gCodePrint.gcode");
 	buffer << t.rdbuf();
 	char line[256];
 
 	while (!buffer.eof())
 	{
-		buffer.getline(line, 256);
+		buffer.getline(line, 256); 
+		controlTemp();
+		Log("%f\n", input);
 		ParseCommand(line);
 	}
+
+	//digitalWrite(SPI_LATCH, LOW);
+	//SPI.transfer(255);
+	//digitalWrite(SPI_LATCH, HIGH);
+	//delay(10000);
+	//digitalWrite(SPI_LATCH, LOW);
+	//SPI.transfer(0);
+	//digitalWrite(SPI_LATCH, HIGH);
 	//ParseCommand(line);
 
 
@@ -171,8 +201,7 @@ void setup()
 	//	Log("Failed. Error Code : %d", WSAGetLastError());
 	//}
 
-	analogReadResolution(12);
-	InitializePins();
+
 
 	//attachInterrupt(1, executeCommand, CHANGE);
 	//Log("Initialised.\n");
@@ -182,9 +211,8 @@ void setup()
 
 
 	//	temp_reader.BeginNewRecording(web_client, uri_builder(U("/Temperature/AddTemperatureTest")), kp, ki, kd);
-	//	aTune.SetControlType(1);
-	//	heaterPid.SetMode(AUTOMATIC);
-	//	heaterPid.SetOutputLimits(0, 255);
+		//aTune.SetControlType(1);
+
 
 	//	if (tuning)
 	//	{
@@ -230,6 +258,7 @@ void G1(float distances[], char distanceLabels[], int count)
 	}
 
 	float* distanceRatios = (float*)malloc(sizeof(float) * count);
+	short* lastStepCounters = (short*)malloc(sizeof(short) * count);
 	short directional = 0;
 
 	for (int i = 0; i < count; i++)
@@ -239,25 +268,30 @@ void G1(float distances[], char distanceLabels[], int count)
 		switch (distanceLabels[i])
 		{
 		case 'X':
-			if (distances[i] > 0)
+			if (distances[i]< 0)
 				directional += X_AXIS_DIR;
+			xPosition += distances[i];
 			break;
 		case 'Y':
 			if (distances[i] < 0)
 				directional += Y_AXIS_DIR;
+			yPosition += distances[i];
 			break;
 		case 'Z':
 			if (distances[i] < 0)
 				directional += Z_AXIS_DIR;
+			zPosition += distances[i];
 			break;
 		case 'E':
 			if (distances[i] < 0)
 				directional += EXTRUDER_DIR;
+			distanceRatios[i] *= e_steps_mm / stepsPerMM;
+			break;
 		}
 	}
 
 
-	for (int i = 1; i <= distances[0] > 1 ? (distances[0] * stepper_steps_mm) - ((distances[0] - 1) * stepper_steps_mm) : distances[0] * stepper_steps_mm; i++)
+	for (int i = 1; i <= (abs(distances[0]) > 1 ? (abs(distances[0]) * stepsPerMM) - ((abs(distances[0]) - 1) * stepsPerMM) : abs(distances[0]) * stepsPerMM); i++)
 	{
 		short stepSequence = directional;
 		for (int j = 0; j < count; j++)
@@ -265,28 +299,67 @@ void G1(float distances[], char distanceLabels[], int count)
 			switch (distanceLabels[j])
 			{
 			case 'X':
-				if ((i * distances[j]) - ((i - 1) * distances[j]) >= 1)
+				if ((i * abs(distanceRatios[j])) - floor((i - 1) * abs(distanceRatios[j])) >= 1)
 				{
 					stepSequence += X_AXIS_STEP;
+					//if (distances[j] > 0)
+					//	xPosition += 1 / stepsPerMM;
+					//else
+					//	xPosition -= 1 / stepsPerMM;
 				}
 				break;
 			case 'Y':
-				if ((i * distances[j]) - ((i - 1) * distances[j]) >= 1)
+				if ((i * abs(distanceRatios[j])) - floor((i - 1) * abs(distanceRatios[j])) >= 1)
 				{
 					stepSequence += Y_AXIS_STEP;
+					//if (distances[j] > 0)
+					//	yPosition += 1 / stepsPerMM;
+					//else
+					//	yPosition -= 1 / stepsPerMM;
 				}
 				break;
 			case 'Z':
-				if ((i * distances[j]) - ((i - 1) * distances[j]) >= 1)
+				if ((i * abs(distanceRatios[j])) - floor((i - 1) * abs(distanceRatios[j])) >= 1)
 				{
 					stepSequence += Z_AXIS_STEP;
+					//if (distances[j] > 0)
+					//	zPosition += 1 / stepsPerMM;
+					//else
+					//	zPosition -= 1 / stepsPerMM;
 				}
 				break;
+			case 'E':
+				if ((i * abs(distanceRatios[j])) - floor((i - 1) * abs(distanceRatios[j])) >= 1)
+				{
+					stepSequence += EXTRUDER_STEP;
+					//if (distances[j] > 0)
+					//	zPosition += 1 / stepsPerMM;
+					//else
+					//	zPosition -= 1 / stepsPerMM;
+				}
+				break; 
 			}
 		}
-
+		movementBuffer[i - 1] = stepSequence;
 	}
 	free(distanceRatios);
+	
+	for (int j = 0; j < abs(distances[0]); j++)
+	{
+		for (int i = 0; i < stepsPerMM; i++)
+		{
+			digitalWrite(SPI_LATCH, LOW);
+			SPI.transfer(movementBuffer[i]);
+			digitalWrite(SPI_LATCH, HIGH);
+
+			digitalWrite(SPI_LATCH, LOW);
+			SPI.transfer(directional);
+			digitalWrite(SPI_LATCH, HIGH);
+			delayMicroseconds(microSecondsPerStep);
+			//Log(L"Step: %i\n", movementBuffer[i]);
+		}
+	}
+	
 }
 void changeAutoTune()
 {
@@ -601,55 +674,50 @@ void print_mm(int mm, char axis)
 //		Log(L"%s", e);
 //	}
 //}
-void controlTemp(void * aArg)
+void controlTemp()
 {
 	try
 	{
 		//uri_builder resource = uri_builder(U("/Temperature/AddTemperatureTestData"));
 		//resource.append_query(U("temp"), utility::conversions::to_string_t(std::to_string(input)));
 		//resource.append_query(U("testId"), utility::conversions::to_string_t(std::to_string(temp_reader.GetTestId())));
-
-
-
-		while (1)
-		{
 			input = temp_reader.GetEndTemp(web_client, uri_builder(U("/Temperature/AddTemperatureTestData")));
-			if (readingCount == 5)
-			{
-				strcpy(message, "GET /Temperature/AddTemperatureTestData?temp=");
-				strcat(message, std::to_string(input).c_str());
-				strcat(message, "&testId=");
-				strcat(message, std::to_string(temp_reader.GetTestId()).c_str());
-				strcat(message, " HTTP/1.1\r\nHost: studypush.me\r\nConnection: close\r\n\r\n");
-				//Create a socket
-				if ((s = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
-				{
-					Log("Could not create socket : %d", WSAGetLastError());
-				}
-				//Log("Socket created.\n");
+			//if (readingCount == 5)
+			//{
+			//	strcpy(message, "GET /Temperature/AddTemperatureTestData?temp=");
+			//	strcat(message, std::to_string(input).c_str());
+			//	strcat(message, "&testId=");
+			//	strcat(message, std::to_string(temp_reader.GetTestId()).c_str());
+			//	strcat(message, " HTTP/1.1\r\nHost: studypush.me\r\nConnection: close\r\n\r\n");
+			//	//Create a socket
+			//	if ((s = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
+			//	{
+			//		Log("Could not create socket : %d", WSAGetLastError());
+			//	}
+			//	//Log("Socket created.\n");
 
 
-				server.sin_addr.s_addr = inet_addr("191.236.192.121");
-				server.sin_family = AF_INET;
-				server.sin_port = htons(80);
+			//	server.sin_addr.s_addr = inet_addr("191.236.192.121");
+			//	server.sin_family = AF_INET;
+			//	server.sin_port = htons(80);
 
-				//Connect to remote server
-				if (connect(s, (struct sockaddr *)&server, sizeof(server)) < 0)
-				{
-					Log("connect error");
-				}
-				//Log("Connected");
+			//	//Connect to remote server
+			//	if (connect(s, (struct sockaddr *)&server, sizeof(server)) < 0)
+			//	{
+			//		Log("connect error");
+			//	}
+			//	//Log("Connected");
 
-				//Send some data
-				if (send(s, message, strlen(message), 0) < 0)
-				{
-					Log("Send failed");
-				}
-				//Log("Data Send\n");
-				closesocket(s);
-				readingCount = 0;
-			}
-			readingCount++;
+			//	//Send some data
+			//	if (send(s, message, strlen(message), 0) < 0)
+			//	{
+			//		Log("Send failed");
+			//	}
+			//	//Log("Data Send\n");
+			//	closesocket(s);
+			//	readingCount = 0;
+			//}
+			//readingCount++;
 			//Receive a reply from the server
 			//if ((recv_size = recv(s, server_reply, 2000, 0)) == SOCKET_ERROR)
 			//{
@@ -665,10 +733,10 @@ void controlTemp(void * aArg)
 			heaterPid.Compute();
 			//Log(L"%i, Temp: %f", output, input);
 			analogWrite(HOT_END_SWITCH, output);
-			analogWrite(HOT_BED_SWITCH, 0);
+			analogWrite(HOT_BED_SWITCH, 60);
 			analogWrite(FAN_SWITCH, 0);
 			//delay(1000);
-		}
+		
 	}
 	catch (std::exception& e)
 	{
@@ -754,10 +822,27 @@ void ParseCommand(std::string finalCommand)
 				{
 					break;
 				}
+				else if (command[0] == 'F')
+				{
+					layerHeight += (atof(command.substr(1).c_str()) / 60) / 1000;
+				}
 				else
 				{
 					distanceLabels[count] = command[0];
-					distances[count] = atof(command.substr(1).c_str());
+					switch (command[0])
+					{
+					case 'X':
+						distances[count] = atof(command.substr(1).c_str()) - xPosition;
+						break;
+					case 'Y':
+						distances[count] = atof(command.substr(1).c_str()) - yPosition;
+						break;
+					case 'Z':
+						distances[count] = atof(command.substr(1).c_str()) - zPosition;
+					case 'E':
+						distances[count] = atof(command.substr(1).c_str());
+
+					}
 					count++;
 				}
 			}
